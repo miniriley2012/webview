@@ -1,7 +1,5 @@
 #include "webview.hpp"
 
-#define NSApp NSApp
-
 @interface Handler : NSObject <WKScriptMessageHandler>
 - (instancetype)initWithHandler:(HandlerFunc)aHandler;
 @end
@@ -64,14 +62,14 @@ void Window::orderFront() {
 }
 
 Application::Application() {
-    [[NSAutoreleasePool new] autorelease];
-    [NSApplication sharedApplication];
-    [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+    [NSAutoreleasePool new];
+    app = [NSApplication sharedApplication];
+    [app setActivationPolicy:NSApplicationActivationPolicyRegular];
 
     menubar = [[NSMenu new] autorelease];
     id appMenuItem = [[NSMenuItem new] autorelease];
     [menubar addItem:appMenuItem];
-    [NSApp setMainMenu:menubar];
+    [app setMainMenu:menubar];
     id appMenu = [[NSMenu new] autorelease];
     id appName = [[NSProcessInfo processInfo] processName];
     id quitTitle = [@"Quit " stringByAppendingString:appName];
@@ -82,6 +80,6 @@ Application::Application() {
 }
 
 void Application::run() {
-    [NSApp activateIgnoringOtherApps:YES];
-    [NSApp run];
+    [app activateIgnoringOtherApps:YES];
+    [app run];
 }

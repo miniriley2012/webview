@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.14)
 project(webview)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS -ObjC++)
 
 find_library(FOUNDATION Foundation)
 find_library(COCOA Cocoa)

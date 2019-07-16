@@ -4,9 +4,9 @@
 
 #include "webview.hpp"
 
+#include <cmath>
 #include <objc/objc-runtime.h>
-#include <WebKit/WKUserScript.h>
-#import <WebKit/WebKit.h>
+#include <CoreGraphics/CGGeometry.h>
 
 Class handlerClass;
 
@@ -37,8 +37,8 @@ id operator "" _str(const char *s, std::size_t) {
 Window::Window(const char *title, int width, int height, WindowStyle style) {
     // Create NSWindow
     window = objc_msgSend("NSWindow"_cls, "alloc"_sel);
-    objc_msgSend(window, "initWithContentRect:styleMask:backing:defer:"_sel, NSMakeRect(0, 0, width, height),
-                 static_cast<NSWindowStyleMask>(style), NSBackingStoreBuffered, 0);
+    objc_msgSend(window, "initWithContentRect:styleMask:backing:defer:"_sel, CGRectMake(0, 0, width, height),
+                 style, 2, 0);
     objc_msgSend(window, "autorelease"_sel);
 
     // Set Window title
@@ -91,8 +91,7 @@ void Window::loadURL(const char *url) {
 void Window::eval(const char *javaScript) {
     // Create WKUserScript
     id script = objc_msgSend("WKUserScript"_cls, "alloc"_sel);
-    objc_msgSend(script, "initWithSource:injectionTime:forMainFrameOnly:"_sel, asNSString(javaScript),
-                 WKUserScriptInjectionTimeAtDocumentEnd, 1);
+    objc_msgSend(script, "initWithSource:injectionTime:forMainFrameOnly:"_sel, asNSString(javaScript), 1, 1);
     objc_msgSend(script, "autorelease"_sel);
 
     // Add Script to web view
@@ -118,8 +117,8 @@ void Window::orderFront() {
 Application::Application() {
     // Create Autorelease pool
     objc_msgSend("NSAutoreleasePool"_cls, "new"_sel);
-    objc_msgSend("NSApplication"_cls, "sharedApplication"_sel);
-    objc_msgSend(NSApp, "setActivationPolicy:"_sel, NSApplicationActivationPolicyRegular);
+    app = objc_msgSend("NSApplication"_cls, "sharedApplication"_sel);
+    objc_msgSend(app, "setActivationPolicy:"_sel, 0);
 
     // Create Menu
     menubar = objc_msgSend("NSMenu"_cls, "new"_sel);
@@ -130,7 +129,7 @@ Application::Application() {
 
     objc_msgSend(menubar, "addItem:"_sel, appMenuItem);
 
-    objc_msgSend(NSApp, "setMainMenu:"_sel, menubar);
+    objc_msgSend(app, "setMainMenu:"_sel, menubar);
 
     id appMenu = objc_msgSend("NSMenu"_cls, "new"_sel);
     objc_msgSend(appMenu, "autorelease"_sel);
@@ -160,6 +159,6 @@ Application::Application() {
 }
 
 void Application::run() {
-    objc_msgSend(NSApp, "activateIgnoringOtherApps:"_sel, 1);
-    objc_msgSend(NSApp, "run"_sel);
+    objc_msgSend(app, "activateIgnoringOtherApps:"_sel, 1);
+    objc_msgSend(app, "run"_sel);
 }

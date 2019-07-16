@@ -3,21 +3,35 @@
 
 #include <functional>
 #include <objc/objc.h>
+
+#ifdef __OBJC__
+
 #include <WebKit/WebKit.h>
 
+#define WindowType NSWindow*
+#define WebViewType WKWebView*
+
+#else
+
+#define WindowType id
+#define WebViewType id
+
+#endif
 
 typedef void (*HandlerFunc)(const char *);
 
 enum class WindowStyle : unsigned int {
-    Titled = NSWindowStyleMaskTitled,
-    Closable = NSWindowStyleMaskClosable,
-    Miniaturizable = NSWindowStyleMaskMiniaturizable,
-    Resizable = NSWindowStyleMaskResizable,
+    Borderless = 0,
+    Titled = 1u << 0u,
+    Closable = 1u << 1u,
+    Miniaturizable = 1u << 2u,
+    Resizable = 1u << 3u,
     Default = Titled | Closable | Miniaturizable | Resizable
 };
 
 /// Application type for Cocoa Application
 class Application {
+    id app;
     id menubar;
 public:
     Application();
@@ -28,8 +42,8 @@ public:
 
 /// Window type for NSWindow
 class Window {
-    NSWindow *window;
-    WKWebView *webView;
+    WindowType window;
+    WebViewType webView;
 
 public:
     /// Creates a new Window
