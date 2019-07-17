@@ -2,7 +2,7 @@
 #define WEBVIEW_WEBVIEW_HPP
 
 #include <functional>
-#include <objc/objc.h>
+#include <objc/objc-runtime.h>
 
 #ifdef __OBJC__
 
@@ -18,7 +18,9 @@
 
 #endif
 
-typedef void (*HandlerFunc)(const char *);
+class Window;
+
+typedef void (*HandlerFunc)(Window, const char *);
 
 enum class WindowStyle : unsigned int {
     Borderless = 0,
@@ -46,12 +48,23 @@ class Window {
     WebViewType webView;
 
 public:
+    Window() = default;
+
     /// Creates a new Window
-    /// \param title Title of the window
+    /// \param title title of the window
     /// \param width width of the window
     /// \param height height of the window
     /// \param style window functionality
     Window(const char *title, int width, int height, WindowStyle style = WindowStyle::Default);
+
+    /// Sets the title of the window
+    /// \param title title
+    void setTitle(const char *title);
+
+    /// Sets the size of the window
+    /// \param width width
+    /// \param height height
+    void setSize(int width, int height);
 
     /// Loads an HTML string into the web view
     /// \param html string to load

@@ -1,24 +1,26 @@
 #include "webview.hpp"
 
 @interface Handler : NSObject <WKScriptMessageHandler>
-- (instancetype)initWithHandler:(HandlerFunc)aHandler;
+- (instancetype)initWithHandler:(HandlerFunc)aHandler window:(Window)aWindow;
 @end
 
 @implementation Handler {
-    std::function<void(const char *message)> handler;
+    Window window;
+    HandlerFunc handler;
 }
 
-- (instancetype)initWithHandler:(HandlerFunc)aHandler {
+- (instancetype)initWithHandler:(HandlerFunc)aHandler window:(Window)aWindow {
     self = [super init];
     if (self) {
         handler = aHandler;
+        window = aWindow;
     }
 
     return self;
 }
 
 - (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message {
-    handler([(NSString *) [message body] UTF8String]);
+    handler(window, [(NSString *) [message body] UTF8String]);
 }
 
 @end
@@ -37,6 +39,17 @@ Window::Window(const char *title, int width, int height, WindowStyle style) {
     [[webView heightAnchor] constraintEqualToAnchor:[[window contentView] heightAnchor]].active = YES;
 }
 
+void Window::setTitle(const char *title) {
+    [window setTitle:@(title)];
+}
+
+void Window::setSize(int width, int height) {
+    auto frame = [window frame];
+    frame.size.width = width;
+    frame.size.height = height;
+    [window setFrame:frame display:true];
+}
+
 void Window::loadHTMLString(const char *html) {
     [webView loadHTMLString:@(html) baseURL:nil];
 }
@@ -53,7 +66,7 @@ void Window::eval(const char *javaScript) {
 }
 
 void Window::addHandler(const char *name, HandlerFunc handler) {
-    auto handle = [[[Handler alloc] initWithHandler:handler] autorelease];
+    auto handle = [[[Handler alloc] initWithHandler:handler window:*this] autorelease];
     [[[webView configuration] userContentController] addScriptMessageHandler:handle name:@(name)];
 }
 

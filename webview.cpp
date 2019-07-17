@@ -71,6 +71,17 @@ Window::Window(const char *title, int width, int height, WindowStyle style) {
                  "setActive:"_sel, 1);
 }
 
+void Window::setTitle(const char *title) {
+    objc_msgSend(window, "setTitle:"_sel, asNSString(title));
+}
+
+void Window::setSize(int width, int height) {
+    auto frame = (CGRect *) objc_msgSend(window, "valueForKey:"_sel, "frame"_str);
+    frame->size.width = width;
+    frame->size.height = height;
+    objc_msgSend(window, "setFrame:display:"_sel, *frame, true);
+}
+
 void Window::loadHTMLString(const char *html) {
     objc_msgSend(webView, "loadHTMLString:baseURL:"_sel, asNSString(html), nullptr);
 }
@@ -102,7 +113,7 @@ void Window::eval(const char *javaScript) {
 void Window::addHandler(const char *name, HandlerFunc handler) {
     // Create Handler
     id handle = objc_msgSend((id) handlerClass, "alloc"_sel);
-    objc_msgSend(handle, "initWithHandler:"_sel, handler);
+    objc_msgSend(handle, "initWithHandler:window:"_sel, handler, this);
     objc_msgSend(handle, "autorelease"_sel);
 
     // Add handler to web view
@@ -146,15 +157,19 @@ Application::Application() {
     class_addProtocol(handlerClass, objc_getProtocol("WKScriptMessageHandler"));
     class_addIvar(handlerClass, "handler", sizeof(HandlerFunc), static_cast<unsigned char>(log2(_Alignof(HandlerFunc))),
                   "?");
-    class_addMethod(handlerClass, "initWithHandler:"_sel, (IMP) +[](id self, SEL cmd, id handler) {
+    class_addIvar(handlerClass, "window", sizeof(Window), static_cast<unsigned char>(log2(_Alignof(Window))), "?");
+    class_addMethod(handlerClass, "initWithHandler:window:"_sel, (IMP) +[](id self, SEL cmd, id handler, id window) {
         object_setInstanceVariable(self, "handler", handler);
+        object_setInstanceVariable(self, "window", window);
     }, "v@:@");
     class_addMethod(handlerClass, "userContentController:didReceiveScriptMessage:"_sel,
                     (IMP) +[](id self, SEL cmd, id userContentController, id message) {
-                        void *handler;
+                        void *handler, *window;
                         object_getInstanceVariable(self, "handler", &handler);
-                        ((HandlerFunc) handler)(
-                                (const char *) objc_msgSend(objc_msgSend(message, "body"_sel), "UTF8String"_sel));
+                        object_getInstanceVariable(self, "window", &window);
+                        ((HandlerFunc) handler)(*((Window *) window),
+                                                (const char *) objc_msgSend(objc_msgSend(message, "body"_sel),
+                                                                            "UTF8String"_sel));
                     }, "v@:@@");
 }
 
