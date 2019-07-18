@@ -226,7 +226,7 @@ void Application::addDefaultMenus() {
     id viewMenu = createMenu(menubar, "View"_str);
     addMenuItem(viewMenu, "Reload Page"_str, "reloadPage"_sel, "r"_str);
     objc_msgSend(addMenuItem(viewMenu, "Enter Full Screen"_str, "toggleFullScreen:"_sel, "f"_str),
-                 "setKeyEquivalentModifierMask:"_sel, 1u << 18u);
+                 "setKeyEquivalentModifierMask:"_sel, 1u << 18u | 1u << 20u); // 18 is control, 20 is command
 
     addMenuItem(createMenu(menubar, "Window"_str), "Minimize"_str, "performMiniaturize:"_sel, "m"_str);
 }
