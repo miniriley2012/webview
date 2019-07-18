@@ -1,11 +1,10 @@
 #ifndef WEBVIEW_WEBVIEW_HPP
 #define WEBVIEW_WEBVIEW_HPP
 
-#include <functional>
+#include <vector>
 #include <objc/objc-runtime.h>
 
 #ifdef __OBJC__
-
 #include <WebKit/WebKit.h>
 
 #define WindowType NSWindow*
@@ -34,7 +33,10 @@ enum class WindowStyle : unsigned int {
 /// Application type for Cocoa Application
 class Application {
     id app;
+    id appDelegate;
     id menubar;
+
+    void addDefaultMenus();
 public:
     Application();
 

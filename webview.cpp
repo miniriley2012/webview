@@ -134,23 +134,34 @@ Application::Application() {
     // Create Menu
     menubar = objc_msgSend("NSMenu"_cls, "new"_sel);
     objc_msgSend(menubar, "autorelease"_sel);
-
-    id appMenuItem = objc_msgSend("NSMenuItem"_cls, "new"_sel);
-    objc_msgSend(appMenuItem, "autorelease"_sel);
-
-    objc_msgSend(menubar, "addItem:"_sel, appMenuItem);
-
     objc_msgSend(app, "setMainMenu:"_sel, menubar);
 
-    id appMenu = objc_msgSend("NSMenu"_cls, "new"_sel);
-    objc_msgSend(appMenu, "autorelease"_sel);
-    id appName = objc_msgSend(objc_msgSend("NSProcessInfo"_cls, "processInfo"_sel), "processName"_sel);
-    id quitTitle = objc_msgSend("Quit "_str, "stringByAppendingString:"_sel, appName);
-    id quitMenuItem = objc_msgSend(objc_msgSend("NSMenuItem"_cls, "alloc"_sel),
-                                   "initWithTitle:action:keyEquivalent:"_sel, quitTitle, "terminate:"_sel, "q"_str);
-    objc_msgSend(quitMenuItem, "autorelease"_sel);
-    objc_msgSend(appMenu, "addItem:"_sel, quitMenuItem);
-    objc_msgSend(appMenuItem, "setSubmenu:"_sel, appMenu);
+    addDefaultMenus();
+
+    // Create AppDelegate
+    Class appDelegateClass = objc_allocateClassPair((Class) "NSObject"_cls, "AppDelegate", 0);
+
+    class_addMethod(appDelegateClass, "applicationShouldTerminateAfterLastWindowClosed:"_sel,
+                    (IMP) +[]() { return true; }, "c@:@");
+    class_addMethod(appDelegateClass, "closeWindow"_sel, (IMP) +[]() {
+        objc_msgSend(objc_msgSend(objc_msgSend("NSApplication"_cls, "sharedApplication"_sel), "mainWindow"_sel),
+                     "close"_sel);
+    }, "v@:@");
+    class_addMethod(appDelegateClass, "reloadPage"_sel, (IMP) +[] {
+        id subview = objc_msgSend(objc_msgSend(
+                objc_msgSend(objc_msgSend(objc_msgSend("NSApplication"_cls, "sharedApplication"_sel), "mainWindow"_sel),
+                             "contentView"_sel), "subviews"_sel), "firstObject"_sel);
+        if (subview) {
+            objc_msgSend(subview, "reload"_sel);
+        }
+    }, "v@");
+
+    objc_registerClassPair(appDelegateClass);
+
+    appDelegate = objc_msgSend("AppDelegate"_cls, "new"_sel);
+    objc_msgSend(appDelegate, "autorelease"_sel);
+
+    objc_msgSend(app, "setDelegate:"_sel, appDelegate);
 
     // Create Handler class
     handlerClass = objc_allocateClassPair((Class) "NSObject"_cls, "Handler", 0);
@@ -171,6 +182,53 @@ Application::Application() {
                                                 (const char *) objc_msgSend(objc_msgSend(message, "body"_sel),
                                                                             "UTF8String"_sel));
                     }, "v@:@@");
+}
+
+id createMenu(id menubar, id title) {
+    id menuItem = objc_msgSend("NSMenuItem"_cls, "new"_sel);
+    objc_msgSend(menuItem, "autorelease"_sel);
+    objc_msgSend(menubar, "addItem:"_sel, menuItem);
+    id menu = objc_msgSend(objc_msgSend("NSMenu"_cls, "alloc"_sel), "initWithTitle:"_sel, title);
+    objc_msgSend(menuItem, "autorelease"_sel);
+    objc_msgSend(menuItem, "setSubmenu:"_sel, menu);
+    return menu;
+}
+
+id addMenuItem(id menu, id title, SEL action, id keyEquivalent) {
+    return objc_msgSend(menu, "addItemWithTitle:action:keyEquivalent:"_sel, title, action, keyEquivalent);
+}
+
+void Application::addDefaultMenus() {
+    Method method = class_getClassMethod((Class) "NSMenuItem"_cls, "separatorItem"_sel);
+
+    id appName = objc_msgSend(objc_msgSend("NSProcessInfo"_cls, "processInfo"_sel), "processName"_sel);
+    id quitTitle = objc_msgSend("Quit "_str, "stringByAppendingString:"_sel, appName);
+    id hideTitle = objc_msgSend("Hide "_str, "stringByAppendingString:"_sel, appName);
+    id appMenu = createMenu(menubar, ""_str);
+    addMenuItem(appMenu, hideTitle, "hide:"_sel, "h"_str);
+    objc_msgSend(appMenu, "addItem:"_sel, method_getImplementation(method)("NSMenuItem"_cls, "separatorItem"_sel));
+    addMenuItem(appMenu, quitTitle, "terminate:"_sel, "q"_str);
+
+    addMenuItem(createMenu(menubar, "File"_str), "Close Window"_str, "closeWindow"_sel, "w"_str);
+
+    id editMenu = createMenu(menubar, "Edit"_str);
+    addMenuItem(editMenu, "Undo"_str, "undo:"_sel, "z"_str);
+    addMenuItem(editMenu, "Redo"_str, "redo:"_sel, "Z"_str);
+    objc_msgSend(editMenu, "addItem:"_sel, method_getImplementation(method)("NSMenuItem"_cls, "separatorItem"_sel));
+    addMenuItem(editMenu, "Cut"_str, "cut:"_sel, "x"_str);
+    addMenuItem(editMenu, "Copy"_str, "copy:"_sel, "c"_str);
+    addMenuItem(editMenu, "Paste"_str, "paste:"_sel, "v"_str);
+    objc_msgSend(addMenuItem(editMenu, "Paste and Match Style"_str, "redo:"_sel, ""_str),
+                 "setKeyEquivalentModifierMask:"_sel, 1u << 19u); // 1u << 19u is alt
+    addMenuItem(editMenu, "Delete"_str, "delete:"_sel, "Z"_str);
+    addMenuItem(editMenu, "Select All"_str, "selectAll:"_sel, "a"_str);
+
+    id viewMenu = createMenu(menubar, "View"_str);
+    addMenuItem(viewMenu, "Reload Page"_str, "reloadPage"_sel, "r"_str);
+    objc_msgSend(addMenuItem(viewMenu, "Enter Full Screen"_str, "toggleFullScreen:"_sel, "f"_str),
+                 "setKeyEquivalentModifierMask:"_sel, 1u << 18u);
+
+    addMenuItem(createMenu(menubar, "Window"_str), "Minimize"_str, "performMiniaturize:"_sel, "m"_str);
 }
 
 void Application::run() {
