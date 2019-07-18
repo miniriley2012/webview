@@ -76,6 +76,9 @@ public:
     /// \param url URL to load
     void loadURL(const char *url);
 
+    /// Reloads the web view
+    void reload();
+
     /// Injects JavaScript into the web view
     /// \param javaScript string to inject
     void eval(const char *javaScript);

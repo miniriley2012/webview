@@ -99,6 +99,10 @@ void Window::loadURL(const char *url) {
     objc_msgSend(webView, "loadRequest:"_sel, request);
 }
 
+void Window::reload() {
+    objc_msgSend(webView, "reload"_sel);
+}
+
 void Window::eval(const char *javaScript) {
     // Create WKUserScript
     id script = objc_msgSend("WKUserScript"_cls, "alloc"_sel);

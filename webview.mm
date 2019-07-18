@@ -85,6 +85,10 @@ void Window::loadURL(const char *url) {
     [webView loadRequest:request];
 }
 
+void Window::reload() {
+    [webView reload];
+}
+
 void Window::eval(const char *javaScript) {
     WKUserScript *script = [[[WKUserScript alloc] initWithSource:@(javaScript) injectionTime:WKUserScriptInjectionTime::WKUserScriptInjectionTimeAtDocumentEnd forMainFrameOnly:YES] autorelease];
     [[[webView configuration] userContentController] addUserScript:script];
