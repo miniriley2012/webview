@@ -1,9 +1,6 @@
 #ifndef WEBVIEW_WEBVIEW_HPP
 #define WEBVIEW_WEBVIEW_HPP
 
-#include <vector>
-#include <objc/objc-runtime.h>
-
 #ifdef PORT_COCOA
 #ifdef __OBJC__
 #include <WebKit/WebKit.h>
@@ -12,6 +9,8 @@
 #define WebViewType WKWebView*
 
 #else
+
+#include <objc/objc-runtime.h>
 
 #define WindowType id
 #define WebViewType id

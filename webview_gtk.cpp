@@ -4,8 +4,6 @@
 
 #include "webview.hpp"
 
-#include <iostream>
-
 GtkApplication *Application::app = nullptr;
 
 Application::Application() {

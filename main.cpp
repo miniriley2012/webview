@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "webview.hpp"
 
 int main() {

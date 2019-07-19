@@ -5,7 +5,6 @@
 #include "webview.hpp"
 
 #include <cmath>
-#include <objc/objc-runtime.h>
 #include <CoreGraphics/CGGeometry.h>
 
 Class handlerClass;
