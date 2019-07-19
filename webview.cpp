@@ -69,6 +69,7 @@ Window::Window(const char *title, int width, int height, WindowStyle style) {
     objc_msgSend(objc_msgSend(objc_msgSend(webView, "heightAnchor"_sel), "constraintEqualToAnchor:"_sel,
                               objc_msgSend(objc_msgSend(window, "contentView"_sel), "heightAnchor"_sel)),
                  "setActive:"_sel, 1);
+    objc_msgSend(window, "makeKeyAndOrderFront:"_sel, nullptr);
 }
 
 void Window::setTitle(const char *title) {

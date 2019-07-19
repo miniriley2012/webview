@@ -62,6 +62,7 @@ Window::Window(const char *title, int width, int height, WindowStyle style) {
 
     [[webView widthAnchor] constraintEqualToAnchor:[[window contentView] widthAnchor]].active = YES;
     [[webView heightAnchor] constraintEqualToAnchor:[[window contentView] heightAnchor]].active = YES;
+    [window makeKeyAndOrderFront:nil];
 }
 
 void Window::setTitle(const char *title) {

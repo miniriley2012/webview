@@ -7,7 +7,6 @@ int main() {
 
     auto url = Window("URL Test", 400, 400);
     url.loadURL("https://example.com");
-    url.orderFront();
 
     auto html = Window("HTML Test", 400, 400);
 
@@ -24,8 +23,6 @@ int main() {
     });
 
     html.eval("window.webkit.messageHandlers.title.postMessage('My Window');");
-
-    html.orderFront();
 
     app.run();
 }
