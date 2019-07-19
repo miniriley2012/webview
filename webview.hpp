@@ -4,6 +4,7 @@
 #include <vector>
 #include <objc/objc-runtime.h>
 
+#ifdef PORT_COCOA
 #ifdef __OBJC__
 #include <WebKit/WebKit.h>
 
@@ -15,6 +16,13 @@
 #define WindowType id
 #define WebViewType id
 
+#endif
+#elif PORT_GTK
+
+#include <gtk/gtk.h>
+
+#define WindowType GtkWidget*
+#define WebViewType struct
 #endif
 
 class Window;
@@ -32,13 +40,24 @@ enum class WindowStyle : unsigned int {
 
 /// Application type for Cocoa Application
 class Application {
+#ifdef PORT_COCOA
     id app;
     id appDelegate;
     id menubar;
 
     void addDefaultMenus();
+
+#elif PORT_GTK
+    static GtkApplication *app;
+#endif
 public:
     Application();
+
+#ifdef PORT_GTK
+
+    ~Application();
+
+#endif
 
     /// Run application
     void run();
