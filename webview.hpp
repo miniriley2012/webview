@@ -48,10 +48,15 @@ class Application {
 
 #elif PORT_GTK
     static GtkApplication *app;
-    ~Application();
 #endif
 public:
     Application();
+
+#ifdef PORT_GTK
+
+    ~Application();
+
+#endif
 
     /// Run application
     void run();
