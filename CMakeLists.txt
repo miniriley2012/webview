@@ -7,12 +7,12 @@ message("Building for ${PORT}")
 if (${PORT} MATCHES "Cocoa")
     find_library(WEBKIT WebKit)
 
-    add_library(webview main.cpp webview.hpp webview.cpp)
+    add_library(webview webview.hpp webview.cpp)
 
     target_link_libraries(webview ${WEBKIT})
     target_compile_options(webview PUBLIC -DPORT_COCOA)
 elseif (${PORT} MATCHES "GTK")
-    add_library(webview main.cpp webview.hpp webview_gtk.cpp)
+    add_library(webview webview.hpp webview_gtk.cpp)
     if (${APPLE}) # Homebrew stuff
         set(ENV{PKG_CONFIG_PATH} "/usr/local/opt/libffi/lib/pkgconfig")
         target_include_directories(webview PUBLIC /usr/local/opt/gettext/include)
