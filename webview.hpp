@@ -19,9 +19,10 @@
 #elif PORT_GTK
 
 #include <gtk/gtk.h>
+#include <webkitgtk-4.0/webkit2/webkit2.h>
 
 #define WindowType GtkWidget*
-#define WebViewType struct
+#define WebViewType WebKitWebView*
 #endif
 
 class Window;
