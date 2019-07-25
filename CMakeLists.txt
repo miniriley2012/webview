@@ -8,9 +8,24 @@ if (${PORT} MATCHES "Cocoa")
     find_library(WEBKIT WebKit)
 
     add_library(webview webview.hpp webview.cpp)
-
     target_link_libraries(webview ${WEBKIT})
     target_compile_options(webview PUBLIC -DPORT_COCOA)
+
+    add_library(webview_c webview_c.cpp)
+    target_link_libraries(webview_c ${WEBKIT})
+    target_compile_definitions(webview_c PUBLIC -DPORT_COCOA)
+
+    add_executable(cpp main.cpp webview.cpp webview)
+    target_link_libraries(cpp webview)
+    target_compile_definitions(cpp PUBLIC -DPORT_COCOA)
+
+    add_executable(c main.c webview.cpp webview_c)
+    target_link_libraries(c webview_c)
+    target_compile_definitions(c PUBLIC -DPORT_COCOA)
+
+    enable_testing()
+    add_test(cpp_test cpp)
+    add_test(c_test c)
 elseif (${PORT} MATCHES "GTK")
     add_library(webview webview.hpp webview_gtk.cpp)
     if (${APPLE}) # Homebrew stuff

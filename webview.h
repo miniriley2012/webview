@@ -5,55 +5,36 @@
 #ifndef WEBVIEW_WEBVIEW_H
 #define WEBVIEW_WEBVIEW_H
 
-#include "webview.hpp"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void *newApplication() {
-    return new Application;
-}
+typedef void *WebViewApplication;
+typedef void *WebViewWindow;
 
-void applicationRun(void *app) {
-    ((Application *) app)->run();
-}
+typedef void (*CHandlerFunc)(void *, const char *);
 
-void *newWindow(const char *title, int width, int height) {
-    return (void *) new Window(title, width, height);
-}
+WebViewApplication newApplication();
 
-void windowSetTitle(void *window, const char *title) {
-    ((Window *) window)->setTitle(title);
-}
+void applicationRun(WebViewApplication app);
 
-void windowSetSize(void *window, int width, int height) {
-    ((Window *) window)->setSize(width, height);
-}
+WebViewWindow newWindow(const char *title, int width, int height);
 
-void windowLoadHTMString(void *window, const char *html) {
-    ((Window *) window)->loadHTMLString(html);
-}
+void windowSetTitle(WebViewWindow window, const char *title);
 
-void windowLoadURL(void *window, const char *url) {
-    ((Window *) window)->loadURL(url);
-}
+void windowSetSize(WebViewWindow window, int width, int height);
 
-void windowReload(void *window) {
-    ((Window *) window)->reload();
-}
+void windowLoadHTMLString(WebViewWindow window, const char *html);
 
-void windowEval(void *window, const char *javaScript) {
-    ((Window *) window)->eval(javaScript);
-}
+void windowLoadURL(WebViewWindow window, const char *url);
 
-void windowAddHandler(void *window, const char *name, HandlerFunc handler) {
-    ((Window *) window)->addHandler(name, handler);
-}
+void windowReload(WebViewWindow window);
 
-void windowOrderFront(void *window) {
-    ((Window *) window)->orderFront();
-}
+void windowEval(WebViewWindow window, const char *javaScript);
+
+void windowAddHandler(WebViewWindow window, const char *name, CHandlerFunc handler);
+
+void windowOrderFront(WebViewWindow window);
 
 #ifdef __cplusplus
 }
