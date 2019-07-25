@@ -16,9 +16,9 @@ int main() {
 </form>
 )");
 
-    html.addHandler("title", [](Window window, const char *message) {
-        std::cout << "Setting title to: " << message << std::endl;
-        window.setTitle(message);
+    html.addHandler("title", [](Window window, HandlerInfo info) {
+        std::cout << "Setting title to: " << info.result << std::endl;
+        window.setTitle(info.result);
     });
 
     html.eval("window.webkit.messageHandlers.title.postMessage('My Window');");

@@ -1,6 +1,8 @@
 #ifndef WEBVIEW_WEBVIEW_HPP
 #define WEBVIEW_WEBVIEW_HPP
 
+#include "shared.h"
+
 #ifdef PORT_COCOA
 #ifdef __OBJC__
 #include <WebKit/WebKit.h>
@@ -27,7 +29,7 @@
 
 class Window;
 
-typedef void (*HandlerFunc)(Window, const char *);
+typedef void (*HandlerFunc)(Window, HandlerInfo);
 
 enum class WindowStyle : unsigned int {
     Borderless = 0,

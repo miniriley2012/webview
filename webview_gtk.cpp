@@ -8,7 +8,7 @@
 
 GtkApplication *Application::app = nullptr;
 
-struct HandlerInfo {
+struct JSHandlerInfo {
     const char *name;
     HandlerFunc handler;
     Window *window;
@@ -84,10 +84,10 @@ void Window::eval(const char *javaScript) {
 
 void Window::addHandler(const char *name, HandlerFunc handler) {
     WebKitUserContentManager *manager = webkit_web_view_get_user_content_manager(webView);
-    handlers[name] = HandlerInfo{name, handler, this};
+    handlers[name] = JSHandlerInfo{name, handler, this};
     g_signal_connect(manager, (std::string("script-message-received::") + name).c_str(),
                      (GCallback) + [](WebKitUserContentManager *, WebKitJavascriptResult *result, gpointer user_data) {
-                         auto handler = reinterpret_cast<HandlerInfo *>(user_data);
+                         auto handler = reinterpret_cast<JSHandlerInfo *>(user_data);
                          JSCValue *value = webkit_javascript_result_get_js_value(result);
                          if (jsc_value_is_string(value)) {
                              JSCException *exception;
@@ -96,13 +96,14 @@ void Window::addHandler(const char *name, HandlerFunc handler) {
                              str_value = jsc_value_to_string(value);
                              exception = jsc_context_get_exception(jsc_value_get_context(value));
                              if (exception) {
-                                 handler->handler(*handler->window, jsc_exception_get_message(exception));
+                                 handler->handler(*handler->window,
+                                                  HandlerInfo{handler->name, jsc_exception_get_message(exception)});
                              } else {
-                                 handler->handler(*handler->window, str_value);
+                                 handler->handler(*handler->window, HandlerInfo{handler->name, str_value});
                              }
                              g_free(str_value);
                          } else {
-                             handler->handler(*handler->window, "Value is not a string");
+                             handler->handler(*handler->window, HandlerInfo{handler->name, "Value is not a string"});
                          }
                          webkit_javascript_result_unref(result);
                      }, &handlers[name]);

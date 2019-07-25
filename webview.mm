@@ -45,7 +45,7 @@
 }
 
 - (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message {
-    handler(window, [(NSString *) [message body] UTF8String]);
+    handler(window, HandlerInfo{[(NSString * ) [message name] UTF8String],[(NSString *)[message body] UTF8String]});
 }
 
 @end

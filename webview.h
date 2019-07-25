@@ -5,6 +5,8 @@
 #ifndef WEBVIEW_WEBVIEW_H
 #define WEBVIEW_WEBVIEW_H
 
+#include "shared.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -12,7 +14,7 @@ extern "C" {
 typedef void *WebViewApplication;
 typedef void *WebViewWindow;
 
-typedef void (*CHandlerFunc)(void *, const char *);
+typedef void (*CHandlerFunc)(void *, struct HandlerInfo);
 
 WebViewApplication newApplication();
 

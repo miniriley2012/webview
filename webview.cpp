@@ -182,9 +182,12 @@ Application::Application() {
                         void *handler, *window;
                         object_getInstanceVariable(self, "handler", &handler);
                         object_getInstanceVariable(self, "window", &window);
-                        ((HandlerFunc) handler)(*((Window *) window),
-                                                (const char *) objc_msgSend(objc_msgSend(message, "body"_sel),
-                                                                            "UTF8String"_sel));
+                        ((HandlerFunc) handler)(*((Window *) window), HandlerInfo{
+                                (const char *) objc_msgSend(objc_msgSend(message, "name"_sel),
+                                                            "UTF8String"_sel),
+                                (const char *) objc_msgSend(objc_msgSend(message, "body"_sel),
+                                                            "UTF8String"_sel)
+                        });
                     }, "v@:@@");
 }
 

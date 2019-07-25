@@ -2,8 +2,13 @@
 // Created by Riley Quinn on 2019-07-24.
 //
 
+#include <map>
+#include <string>
 #include "webview.h"
 #include "webview.hpp"
+
+// TODO Find some better way to do this
+std::map<std::string, CHandlerFunc> handlers;
 
 void *newApplication() {
     return static_cast<void *>(new Application);
@@ -25,7 +30,7 @@ void windowSetSize(void *window, int width, int height) {
     static_cast<Window *>(window)->setSize(width, height);
 }
 
-void windowLoadHTMString(void *window, const char *html) {
+void windowLoadHTMLString(void *window, const char *html) {
     static_cast<Window *>(window)->loadHTMLString(html);
 }
 
@@ -42,7 +47,10 @@ void windowEval(void *window, const char *javaScript) {
 }
 
 void windowAddHandler(void *window, const char *name, CHandlerFunc handler) {
-    static_cast<Window *>(window)->addHandler(name, (HandlerFunc) handler);
+    handlers[std::string(name)] = handler;
+    static_cast<Window *>(window)->addHandler(name, +[](Window window, HandlerInfo info) {
+        handlers[info.name](static_cast<WebViewWindow>(&window), info);
+    });
 }
 
 void windowOrderFront(void *window) {
