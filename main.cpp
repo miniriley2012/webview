@@ -1,12 +1,11 @@
 #include <iostream>
-
 #include "webview.hpp"
 
 int main() {
     auto app = Application();
 
-    auto url = Window("URL Test", 400, 400);
-    url.loadURL("https://example.com");
+    Window window("Test", 400, 400);
+    window.loadURL("https://example.com");
 
     auto html = Window("HTML Test", 400, 400);
 
@@ -23,6 +22,5 @@ int main() {
     });
 
     html.eval("window.webkit.messageHandlers.title.postMessage('My Window');");
-
     app.run();
 }
