@@ -44,8 +44,12 @@ WebViewApplication newApplication();
 void applicationAddMenu(WebViewApplication app, WebViewMenu menu);
 
 /// Run application
-/// \param app
+/// \param app application
 void applicationRun(WebViewApplication app);
+
+/// Quit application
+/// \param app application
+void applicationQuit(WebViewApplication app);
 
 /// Creates a new WebViewWindow
 /// \param title title of the window
@@ -96,9 +100,17 @@ void windowEval(WebViewWindow window, const char *javaScript);
 /// \param handler handler
 void windowAddHandler(WebViewWindow window, const char *name, CHandlerFunc handler);
 
-/// Orders a window to the front of the screen and grabs focus
-/// \param window window
-void windowOrderFront(WebViewWindow window);
+/// Hides the window
+void windowHide(WebViewWindow window);
+
+/// Orders a window to the front of the screen and grabs focus. If the window is minimized or hidden it will be shown.
+void windowShow(WebViewWindow window);
+
+/// Minimizes the window
+void windowMinimize(WebViewWindow window);
+
+/// Closes the window
+void windowClose(WebViewWindow window);
 
 #ifdef __cplusplus
 }

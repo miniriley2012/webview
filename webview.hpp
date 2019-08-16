@@ -85,6 +85,7 @@ class Window {
 
     /// Orders a window to the front of the screen and grabs focus
     void orderFront();
+
 public:
     Window() = default;
 
@@ -133,7 +134,8 @@ public:
     /// Hides the window
     void hide();
 
-    /// Shows the window
+    /// Orders a window to the front of the screen and grabs focus.
+    /// If the window is minimized or hidden it will be shown.
     void show();
 
     /// Minimizes the window

@@ -68,6 +68,18 @@ void windowAddHandler(WebViewWindow window, const char *name, CHandlerFunc handl
     });
 }
 
-void windowOrderFront(WebViewWindow window) {
-    static_cast<Window *>(window)->orderFront();
+void windowHide(WebViewWindow window) {
+    static_cast<Window *>(window)->hide();
+}
+
+void windowShow(WebViewWindow window) {
+    static_cast<Window *>(window)->show();
+}
+
+void windowMinimize(WebViewWindow window) {
+    static_cast<Window *>(window)->minimize();
+}
+
+void windowClose(WebViewWindow window) {
+    static_cast<Window *>(window)->close();
 }
