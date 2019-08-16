@@ -11,8 +11,17 @@ void handler(WebViewWindow window, struct HandlerInfo info) {
     windowSetTitle(window, info.result);
 }
 
+void menuBarHandler() {
+    printf("Menubar Test!");
+}
+
 int main() {
     WebViewApplication app = newApplication();
+
+    WebViewMenu menu = newMenu("Thing");
+    menuAddItem(menu, newMenuItem("Another Thing", "o", menuBarHandler));
+    applicationAddMenu(app, menu);
+
     WebViewWindow window = newWindow("Test", 400, 400);
     windowLoadURL(window, "https://example.com");
 

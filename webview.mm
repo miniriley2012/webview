@@ -1,3 +1,6 @@
+#import <objc/runtime.h>
+#include <string>
+#include <map>
 #include "webview.hpp"
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
@@ -6,9 +9,15 @@
 - (void)closeWindow;
 
 - (void)reloadPage;
+
+- (void)addHandler:(std::string)name handler:(MenuBarHandler)handler;
+
+- (MenuBarHandler)getHandler:(std::string)name;
 @end
 
-@implementation AppDelegate
+@implementation AppDelegate {
+    std::map <std::string, MenuBarHandler> handlers;
+}
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {
     return YES;
 }
@@ -23,6 +32,15 @@
         [subview reload];
     }
 }
+
+- (void)addHandler:(std::string)name handler:(MenuBarHandler)handler {
+    handlers[name] = handler;
+}
+
+- (MenuBarHandler)getHandler:(std::string)name {
+    return handlers[name];
+}
+
 @end
 
 @interface Handler : NSObject <WKScriptMessageHandler>
@@ -45,7 +63,7 @@
 }
 
 - (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message {
-    handler(window, HandlerInfo{[(NSString * ) [message name] UTF8String],[(NSString *)[message body] UTF8String]});
+    handler(window, HandlerInfo{[[message name] UTF8String], [(NSString * ) [message body] UTF8String]});
 }
 
 @end
@@ -128,7 +146,7 @@ void Application::addDefaultMenus() {
     [appMenu addItem:NSMenuItem.separatorItem];
     id quitTitle = [@"Quit " stringByAppendingString:appName];
     id quitMenuItem = [[[NSMenuItem alloc] initWithTitle:quitTitle
-                                                  action:@selector(terminate:) keyEquivalent:@"q"] autorelease];
+            action:@selector(terminate:) keyEquivalent:@"q"] autorelease];
     [appMenu addItem:quitMenuItem];
     [appMenuItem setSubmenu:appMenu];
 
@@ -164,6 +182,21 @@ void Application::addDefaultMenus() {
     id windowMenu = [[[NSMenu alloc] initWithTitle:@"Window"] autorelease];
     [windowMenu addItemWithTitle:@"Minimize" action:@selector(performMiniaturize:) keyEquivalent:@"m"];
     [windowMenuItem setSubmenu:windowMenu];
+}
+
+void Application::addMenu(const Menu &menu) {
+    id menuItem = [[NSMenuItem new] autorelease];
+    [menubar addItem:menuItem];
+    id menuItemMenu = [[[NSMenu alloc] initWithTitle:@(menu.name.c_str())] autorelease];
+    for (const auto &item : menu.items) {
+        [appDelegate addHandler:item.name handler:item.handler];
+        class_addMethod([appDelegate class], NSSelectorFromString(@(item.name.c_str())), (IMP) + [](id self, SEL cmd) {
+            [self getHandler:[NSStringFromSelector(cmd) UTF8String]]();
+        }, "v@:@");
+        [menuItemMenu addItemWithTitle:@(item.name.c_str()) action:NSSelectorFromString(
+                @(item.name.c_str()))                       keyEquivalent:@(item.key)];
+    }
+    [menuItem setSubmenu:menuItemMenu];
 }
 
 void Application::run() {

@@ -4,6 +4,12 @@
 int main() {
     auto app = Application();
 
+    auto menu = Menu("Thing");
+    menu.addItem(MenuItem{"Another thing", "o", +[]() {
+        std::cout << "Menubar Test!" << std::endl;
+    }});
+    app.addMenu(menu);
+
     Window window("Test", 400, 400);
     window.loadURL("https://example.com");
 
