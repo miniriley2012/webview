@@ -28,10 +28,13 @@
 #define WebViewType WebKitWebView*
 #endif
 
+// Predeclared Window class for HandlerFunc
 class Window;
 
+/// HandlerFunc for Window
 typedef void (*HandlerFunc)(Window, HandlerInfo);
 
+/// Defines WindowStyles to be used for Window decorations
 enum class WindowStyle : unsigned int {
     Borderless = 0,
     Titled = 1u << 0u,
@@ -41,7 +44,7 @@ enum class WindowStyle : unsigned int {
     Default = Titled | Closable | Miniaturizable | Resizable
 };
 
-/// Application type for Cocoa Application
+/// Application type
 class Application {
 #ifdef PORT_COCOA
     id app;
@@ -64,20 +67,23 @@ public:
 
 #endif
 
-    void addMenu(const Menu &);
+    /// adds a Menu to the application's menubar
+    /// \param menu menu to add
+    void addMenu(const Menu &menu);
 
     /// Run application
     void run();
 
+    /// Quit application
     void quit();
 };
 
-/// Window type for NSWindow
+/// Window type
 class Window {
     WindowType window;
     WebViewType webView;
 
-    /// Orders a Window to the front
+    /// Orders a window to the front of the screen and grabs focus
     void orderFront();
 public:
     Window() = default;
@@ -121,15 +127,19 @@ public:
     /// // Call in JS with: window.webkit.messageHandlers.thing.postMessage('Hello from JavaScript');
     /// \endcode
     /// \param name name of handler
-    /// \param handler function of type void (const char*)
+    /// \param handler handler
     void addHandler(const char *name, HandlerFunc handler);
 
+    /// Hides the window
     void hide();
 
+    /// Shows the window
     void show();
 
+    /// Minimizes the window
     void minimize();
 
+    /// Closes the window
     void close();
 };
 

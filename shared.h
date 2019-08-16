@@ -9,6 +9,7 @@
 extern "C" {
 #endif
 
+/// Contains info about a handler
 struct HandlerInfo {
     const char *name;
     const char *result;
