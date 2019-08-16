@@ -80,6 +80,9 @@ Window::Window(const char *title, int width, int height, WindowStyle style) {
 
     [[webView widthAnchor] constraintEqualToAnchor:[[window contentView] widthAnchor]].active = YES;
     [[webView heightAnchor] constraintEqualToAnchor:[[window contentView] heightAnchor]].active = YES;
+}
+
+void Window::orderFront() {
     [window makeKeyAndOrderFront:nil];
 }
 
@@ -118,8 +121,23 @@ void Window::addHandler(const char *name, HandlerFunc handler) {
     [[[webView configuration] userContentController] addScriptMessageHandler:handle name:@(name)];
 }
 
-void Window::orderFront() {
-    [window makeKeyAndOrderFront:nil];
+void Window::hide() {
+    [window orderOut:nullptr];
+}
+
+void Window::show() {
+    if ([window isMiniaturized]) {
+        [window deminiaturize:nullptr];
+    }
+    orderFront();
+}
+
+void Window::minimize() {
+    [window miniaturize:nullptr];
+}
+
+void Window::close() {
+    [window close];
 }
 
 Application::Application() {
@@ -202,4 +220,8 @@ void Application::addMenu(const Menu &menu) {
 void Application::run() {
     [app activateIgnoringOtherApps:YES];
     [app run];
+}
+
+void Application::quit() {
+    [app terminate:nullptr];
 }

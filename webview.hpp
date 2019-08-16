@@ -68,6 +68,8 @@ public:
 
     /// Run application
     void run();
+
+    void quit();
 };
 
 /// Window type for NSWindow
@@ -75,6 +77,8 @@ class Window {
     WindowType window;
     WebViewType webView;
 
+    /// Orders a Window to the front
+    void orderFront();
 public:
     Window() = default;
 
@@ -120,8 +124,13 @@ public:
     /// \param handler function of type void (const char*)
     void addHandler(const char *name, HandlerFunc handler);
 
-    /// Orders a Window to the front
-    void orderFront();
+    void hide();
+
+    void show();
+
+    void minimize();
+
+    void close();
 };
 
 #endif //WEBVIEW_WEBVIEW_HPP

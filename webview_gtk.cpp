@@ -62,6 +62,10 @@ void Application::run() {
     g_application_run(G_APPLICATION(app), 0, nullptr);
 }
 
+void Application::quit() {
+    g_application_quit(G_APPLICATION(app));
+}
+
 Window::Window(const char *title, int width, int height, WindowStyle style) {
     window = gtk_application_window_new(GTK_APPLICATION(g_application_get_default()));
 
@@ -77,12 +81,14 @@ Window::Window(const char *title, int width, int height, WindowStyle style) {
 
     gtk_application_window_set_show_menubar(GTK_APPLICATION_WINDOW(window), true);
 
-    gtk_widget_show_all(window);
-
     g_signal_connect(g_application_get_default(), "activate",
                      (GCallback) + [](GtkApplication *app, gpointer user_data) {
                          gtk_application_add_window(app, (GtkWindow *) user_data);
                      }, window);
+}
+
+void Window::orderFront() {
+    gtk_widget_grab_focus(window);
 }
 
 void Window::setTitle(const char *title) {
@@ -140,7 +146,19 @@ void Window::addHandler(const char *name, HandlerFunc handler) {
     webkit_user_content_manager_register_script_message_handler(manager, name);
 }
 
-void Window::orderFront() {
-    gtk_widget_grab_focus(window);
+void Window::hide() {
+    gtk_widget_hide(window);
 }
 
+void Window::show() {
+    gtk_window_deiconify(GTK_WINDOW(window));
+    gtk_widget_show_all(window);
+}
+
+void Window::minimize() {
+    gtk_window_iconify(GTK_WINDOW(window));
+}
+
+void Window::close() {
+    gtk_close_window
+}

@@ -69,6 +69,9 @@ Window::Window(const char *title, int width, int height, WindowStyle style) {
     objc_msgSend(objc_msgSend(objc_msgSend(webView, "heightAnchor"_sel), "constraintEqualToAnchor:"_sel,
                               objc_msgSend(objc_msgSend(window, "contentView"_sel), "heightAnchor"_sel)),
                  "setActive:"_sel, 1);
+}
+
+void Window::orderFront() {
     objc_msgSend(window, "makeKeyAndOrderFront:"_sel, nullptr);
 }
 
@@ -126,8 +129,23 @@ void Window::addHandler(const char *name, HandlerFunc handler) {
                  "addScriptMessageHandler:name:"_sel, handle, asNSString(name));
 }
 
-void Window::orderFront() {
-    objc_msgSend(window, "makeKeyAndOrderFront:"_sel, nullptr);
+void Window::hide() {
+    objc_msgSend(window, "orderOut:"_sel, nullptr);
+}
+
+void Window::show() {
+    if (objc_msgSend(window, "isMiniaturized"_sel)) {
+        objc_msgSend(window, "deminiaturize:"_sel, nullptr);
+    }
+    orderFront();
+}
+
+void Window::minimize() {
+    objc_msgSend(window, "miniaturize:"_sel, nullptr);
+}
+
+void Window::close() {
+    objc_msgSend(window, "close"_sel);
 }
 
 Application::Application() {
@@ -276,4 +294,8 @@ void Application::addMenu(const Menu &menu) {
 void Application::run() {
     objc_msgSend(app, "activateIgnoringOtherApps:"_sel, 1);
     objc_msgSend(app, "run"_sel);
+}
+
+void Application::quit() {
+    objc_msgSend(app, "terminate:"_sel, nullptr);
 }
