@@ -12,11 +12,21 @@ extern "C" {
 #endif
 
 typedef void *WebViewApplication;
+typedef void *WebViewMenuItem;
+typedef void *WebViewMenu;
 typedef void *WebViewWindow;
 
 typedef void (*CHandlerFunc)(void *, struct HandlerInfo);
 
+WebViewMenuItem newMenuItem(const char *name, const char *key, void (*handler)());
+
+WebViewMenu newMenu(const char *name);
+
+void menuAddItem(WebViewMenu menu, WebViewMenuItem item);
+
 WebViewApplication newApplication();
+
+void applicationAddMenu(WebViewApplication app, WebViewMenu menu);
 
 void applicationRun(WebViewApplication app);
 

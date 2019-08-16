@@ -6,6 +6,7 @@
 
 #include <cmath>
 #include <CoreGraphics/CGGeometry.h>
+#include <map>
 
 Class handlerClass;
 
@@ -143,8 +144,18 @@ Application::Application() {
     addDefaultMenus();
 
     // Create AppDelegate
+    typedef std::map<std::string, MenuBarHandler> Handlers;
     Class appDelegateClass = objc_allocateClassPair((Class) "NSObject"_cls, "AppDelegate", 0);
+    class_addIvar(appDelegateClass, "handlers", sizeof(Handlers), static_cast<unsigned char>(log2(_Alignof(Handlers))),
+                  "?");
 
+    class_addMethod(appDelegateClass, "init"_sel, (IMP) +[](id self) {
+        auto super = objc_super{self, class_getSuperclass(object_getClass(self))};
+        if ((self = objc_msgSendSuper(&super, "init"_sel))) {
+            object_setInstanceVariable(self, "handlers", new Handlers);
+        }
+        return self;
+    }, "@");
     class_addMethod(appDelegateClass, "applicationShouldTerminateAfterLastWindowClosed:"_sel,
                     (IMP) +[]() { return true; }, "c@:@");
     class_addMethod(appDelegateClass, "closeWindow"_sel, (IMP) +[]() {
@@ -159,6 +170,17 @@ Application::Application() {
             objc_msgSend(subview, "reload"_sel);
         }
     }, "v@");
+    class_addMethod(appDelegateClass, "addHandler:handler:"_sel,
+                    (IMP) +[](id self, SEL cmd, const std::string &name, MenuBarHandler handler) {
+                        void *handlers;
+                        object_getInstanceVariable(self, "handlers", &handlers);
+                        reinterpret_cast<Handlers *>(handlers)->emplace(name, handler);
+                    }, "v@:@");
+    class_addMethod(appDelegateClass, "getHandler:"_sel, (IMP) +[](id self, SEL cmd, const std::string &name) {
+        void *handlers;
+        object_getInstanceVariable(self, "handlers", &handlers);
+        return reinterpret_cast<Handlers *>(handlers)->at(name);
+    }, "v@:@");
 
     objc_registerClassPair(appDelegateClass);
 
@@ -236,6 +258,19 @@ void Application::addDefaultMenus() {
                  "setKeyEquivalentModifierMask:"_sel, 1u << 18u | 1u << 20u); // 18 is control, 20 is command
 
     addMenuItem(createMenu(menubar, "Window"_str), "Minimize"_str, "performMiniaturize:"_sel, "m"_str);
+}
+
+void Application::addMenu(const Menu &menu) {
+    id menuItem = createMenu(menubar, asNSString(menu.name.c_str()));
+    for (const auto &item : menu.items) {
+        objc_msgSend(appDelegate, "addHandler:handler:"_sel, &item.name, item.handler);
+        class_addMethod(object_getClass(appDelegate), sel_registerName(item.name.c_str()), (IMP) +[](id self, SEL cmd) {
+            auto name = std::string(sel_getName(cmd));
+            reinterpret_cast<MenuBarHandler>(objc_msgSend(self, "getHandler:"_sel, &name))();
+        }, "v@:@");
+        addMenuItem(menuItem, asNSString(item.name.c_str()), sel_registerName(item.name.c_str()), asNSString(item.key));
+    }
+
 }
 
 void Application::run() {

@@ -4,9 +4,11 @@
 
 #include <string>
 #include <map>
+#include <algorithm>
 #include "webview.hpp"
 
 GtkApplication *Application::app = nullptr;
+GMenu *Application::menubar = nullptr;
 
 struct JSHandlerInfo {
     const char *name;
@@ -14,7 +16,7 @@ struct JSHandlerInfo {
     Window *window;
 };
 
-std::map<std::string, HandlerInfo> handlers;
+std::map <std::string, JSHandlerInfo> handlers;
 
 Application::Application() {
     gtk_init_check(nullptr, nullptr);
@@ -24,10 +26,36 @@ Application::Application() {
                               nullptr, nullptr,
                               nullptr};
     g_action_map_add_action_entries(G_ACTION_MAP(app), actions, 1, app);
+
+    g_application_register(G_APPLICATION(app), nullptr, nullptr);
+
+    if (!menubar) menubar = g_menu_new();
+    gtk_application_set_menubar(app, G_MENU_MODEL(menubar));
 }
 
 Application::~Application() {
     g_object_unref(app);
+    g_object_unref(menubar);
+}
+
+void Application::addMenu(Menu &menu) {
+    auto m = g_menu_new();
+    auto section = g_menu_new();
+    for (auto &item : menu.items) {
+        std::string action_name = item.name;
+        std::replace(action_name.begin(), action_name.end(), ' ', '-');
+        auto action = g_simple_action_new(action_name.c_str(), nullptr);
+        g_signal_connect(action, "activate", G_CALLBACK(+[](GSimpleAction *, GVariant *, void *handler) {
+            (*reinterpret_cast<MenuBarHandler *>(handler))();
+        }), reinterpret_cast<gpointer>(&item.handler));
+        g_action_map_add_action(G_ACTION_MAP(app), G_ACTION(action));
+        g_menu_append(section, item.name.c_str(),
+                      g_action_print_detailed_name((std::string("app.") + action_name).c_str(), nullptr));
+    }
+    g_menu_append_submenu(m, menu.name.c_str(), G_MENU_MODEL(section));
+    g_menu_append_section(menubar, nullptr, G_MENU_MODEL(m));
+    g_object_unref(m);
+    g_object_unref(section);
 }
 
 void Application::run() {
@@ -35,7 +63,7 @@ void Application::run() {
 }
 
 Window::Window(const char *title, int width, int height, WindowStyle style) {
-    window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    window = gtk_application_window_new(GTK_APPLICATION(g_application_get_default()));
 
     gtk_window_set_title(GTK_WINDOW(window), title);
     gtk_window_set_default_size(GTK_WINDOW(window), width, height);
@@ -46,6 +74,8 @@ Window::Window(const char *title, int width, int height, WindowStyle style) {
     webView = WEBKIT_WEB_VIEW(webkit_web_view_new());
 
     gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(webView));
+
+    gtk_application_window_set_show_menubar(GTK_APPLICATION_WINDOW(window), true);
 
     gtk_widget_show_all(window);
 

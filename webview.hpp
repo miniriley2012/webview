@@ -2,6 +2,7 @@
 #define WEBVIEW_WEBVIEW_HPP
 
 #include "shared.h"
+#include "MenuBar.hpp"
 
 #ifdef PORT_COCOA
 #ifdef __OBJC__
@@ -57,9 +58,13 @@ public:
 
 #ifdef PORT_GTK
 
+    static GMenu *menubar;
+
     ~Application();
 
 #endif
+
+    void addMenu(const Menu &);
 
     /// Run application
     void run();
