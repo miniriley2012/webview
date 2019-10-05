@@ -1,15 +1,19 @@
 #ifndef WEBVIEW_WEBVIEW_HPP
 #define WEBVIEW_WEBVIEW_HPP
 
-#include "shared.h"
+#include <variant>
+#include <map>
+
 #include "MenuBar.hpp"
 
-#ifdef PORT_COCOA
+#ifdef __APPLE__
 #ifdef __OBJC__
 #include <WebKit/WebKit.h>
 
 #define WindowType NSWindow*
 #define WebViewType WKWebView*
+#define ApplicationType NSApplication*
+#define MenuBarType NSMenu*
 
 #else
 
@@ -17,22 +21,34 @@
 
 #define WindowType id
 #define WebViewType id
+#define ApplicationType id
+#define MenuBarType id
 
 #endif
-#elif PORT_GTK
-
+#elif __linux__
 #include <gtk/gtk.h>
 #include <webkitgtk-4.0/webkit2/webkit2.h>
 
 #define WindowType GtkWidget*
 #define WebViewType WebKitWebView*
+#define ApplicationType GtkApplication*
+#define MenuBarType static GMenu*
 #endif
 
 // Predeclared Window class for HandlerFunc
 class Window;
 
+typedef std::variant<std::string, int, nullptr_t> _JSPrimitiveResult;
+typedef std::variant<std::string, int, std::vector<_JSPrimitiveResult>, std::map<std::string, _JSPrimitiveResult>, nullptr_t> JSResult;
+
+/// Contains info about a handler
+struct HandlerInfo {
+    std::string name;
+    JSResult result;
+};
+
 /// HandlerFunc for Window
-typedef void (*HandlerFunc)(Window, HandlerInfo);
+typedef std::function<void(Window, HandlerInfo)> HandlerFunc;
 
 /// Defines WindowStyles to be used for Window decorations
 enum class WindowStyle : unsigned int {
@@ -46,26 +62,23 @@ enum class WindowStyle : unsigned int {
 
 /// Application type
 class Application {
-#ifdef PORT_COCOA
-    id app;
-    id appDelegate;
-    id menubar;
 
+#ifdef __APPLE__
+
+    id appDelegate;
+
+    /// Adds the default menubar menus on macOS
     void addDefaultMenus();
 
-#elif PORT_GTK
-    static GtkApplication *app;
 #endif
+
+    ApplicationType app;
+    MenuBarType menubar;
 public:
+    /// Creates a new Application
     Application();
 
-#ifdef PORT_GTK
-
-    static GMenu *menubar;
-
     ~Application();
-
-#endif
 
     /// adds a Menu to the application's menubar
     /// \param menu menu to add
@@ -82,6 +95,11 @@ public:
 class Window {
     WindowType window;
     WebViewType webView;
+    std::string loadedHTML;
+
+#ifdef __APPLE__
+    id handlerInstance;
+#endif
 
     /// Orders a window to the front of the screen and grabs focus
     void orderFront();
@@ -104,6 +122,10 @@ public:
     /// \param width width
     /// \param height height
     void setSize(int width, int height);
+
+    /// Enable developer tools
+    /// \param enabled enabled
+    void setDeveloperToolsEnabled(bool enabled);
 
     /// Loads an HTML string into the web view
     /// \param html string to load

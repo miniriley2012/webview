@@ -5,7 +5,7 @@
 #ifndef WEBVIEW_WEBVIEW_H
 #define WEBVIEW_WEBVIEW_H
 
-#include "shared.h"
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,7 +16,24 @@ typedef void *WebViewMenuItem;
 typedef void *WebViewMenu;
 typedef void *WebViewWindow;
 
-typedef void (*CHandlerFunc)(void *, struct HandlerInfo);
+/// A filled CHandlerInfo is passed to handlers when they are executed
+struct CHandlerInfo {
+    const char *name;
+    void *result;
+};
+
+/// Window decorations
+enum CWindowStyle {
+    Borderless = 0u,
+    Titled = 1u << 0u,
+    Closable = 1u << 1u,
+    Miniaturizable = 1u << 2u,
+    Resizable = 1u << 3u,
+    Default = Titled | Closable | Miniaturizable | Resizable
+};
+
+/// Convenience typedef for a handler function
+typedef void (*CHandlerFunc)(WebViewWindow, struct CHandlerInfo);
 
 /// Creates a new WebViewMenuItem
 /// \param name label for MenuItem in the menubar
@@ -25,10 +42,18 @@ typedef void (*CHandlerFunc)(void *, struct HandlerInfo);
 /// \return WebViewMenuItem
 WebViewMenuItem newMenuItem(const char *name, const char *key, void (*handler)());
 
+/// Deletes a MenuItem and calls destructors
+/// \param item
+void deleteMenuItem(WebViewMenuItem item);
+
 /// Creates a new Menu
 /// \param name label for Menu
-/// \return Menu
+/// \return WebViewMenu
 WebViewMenu newMenu(const char *name);
+
+/// Deletes a menu
+/// \param menu menu
+void deleteMenu(WebViewMenu menu);
 
 /// Adds a MenuItem to the Menu
 /// \param menu menu to add item to
@@ -36,9 +61,14 @@ WebViewMenu newMenu(const char *name);
 void menuAddItem(WebViewMenu menu, WebViewMenuItem item);
 
 /// Creates a new WebViewApplication
+/// \return WebViewApplication
 WebViewApplication newApplication();
 
-/// adds a Menu to the application's menubar
+/// Deletes an Application
+/// \param app application
+void deleteApplication(WebViewApplication app);
+
+/// Adds a Menu to the application's menubar
 /// \param app application
 /// \param menu menu to add
 void applicationAddMenu(WebViewApplication app, WebViewMenu menu);
@@ -55,8 +85,13 @@ void applicationQuit(WebViewApplication app);
 /// \param title title of the window
 /// \param width width of the window
 /// \param height height of the window
+/// \param style window decorations
 /// \return WebViewWindow
-WebViewWindow newWindow(const char *title, int width, int height);
+WebViewWindow newWindow(const char *title, int width, int height, enum CWindowStyle style);
+
+/// Deletes window and calls destructors.
+/// \param window window
+void deleteWindow(WebViewWindow window);
 
 /// Sets the title of the window
 /// \param window window
@@ -68,6 +103,11 @@ void windowSetTitle(WebViewWindow window, const char *title);
 /// \param width width
 /// \param height height
 void windowSetSize(WebViewWindow window, int width, int height);
+
+/// Enables or disables developer tools (ex. inspect element)
+/// \param window window
+/// \param enabled enabled
+void windowSetDeveloperToolsEnabled(WebViewWindow window, bool enabled);
 
 /// Loads an HTML string into the web view
 /// \param window window
@@ -101,15 +141,19 @@ void windowEval(WebViewWindow window, const char *javaScript);
 void windowAddHandler(WebViewWindow window, const char *name, CHandlerFunc handler);
 
 /// Hides the window
+/// \param window window
 void windowHide(WebViewWindow window);
 
 /// Orders a window to the front of the screen and grabs focus. If the window is minimized or hidden it will be shown.
+/// \param window window
 void windowShow(WebViewWindow window);
 
 /// Minimizes the window
+/// \param window window
 void windowMinimize(WebViewWindow window);
 
 /// Closes the window
+/// \param window window
 void windowClose(WebViewWindow window);
 
 #ifdef __cplusplus

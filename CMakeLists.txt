@@ -3,29 +3,20 @@ project(webview)
 
 set(CMAKE_CXX_STANDARD 17)
 
-message("Building for ${PORT}")
-if (${PORT} MATCHES "Cocoa")
+if (${APPLE})
     find_library(WEBKIT WebKit)
 
-    add_library(webview MenuBar.cpp webview.cpp)
-    target_link_libraries(webview ${WEBKIT})
-    target_compile_options(webview PUBLIC -DPORT_COCOA)
+    add_library(webview webview.cpp)
+    target_link_libraries(webview ${WEBKIT} ${APPKIT})
 
     add_library(webview_c webview_c.cpp webview.cpp)
     target_link_libraries(webview_c ${WEBKIT})
-    target_compile_definitions(webview_c PUBLIC -DPORT_COCOA)
 
-    add_executable(cpp main.cpp)
-    target_link_libraries(cpp webview)
-    target_compile_definitions(cpp PUBLIC -DPORT_COCOA)
+    add_executable(webview_test main.cpp)
+    target_link_libraries(webview_test webview)
 
-    add_executable(c main.c)
-    target_link_libraries(c webview_c)
-    target_compile_definitions(c PUBLIC -DPORT_COCOA)
-
-    enable_testing()
-    add_test(cpp_test cpp)
-    add_test(c_test c)
+    add_executable(webview_c_test main.c)
+    target_link_libraries(webview_c_test webview_c)
 elseif (${PORT} MATCHES "GTK")
     add_library(webview webview_gtk.cpp)
     if (${APPLE}) # Homebrew stuff
@@ -39,13 +30,6 @@ elseif (${PORT} MATCHES "GTK")
     target_link_libraries(webview ${GTK_LIBRARIES} ${WEBKIT2GTK_LIBRARIES})
     target_include_directories(webview PUBLIC ${GTK_INCLUDE_DIRS} ${WEBKIT2GTK_INCLUDE_DIRS})
     target_compile_options(webview PUBLIC ${GTK_CFLAGS_OTHER} ${WEBKIT2GTK_CFLAGS_OTHER} -DPORT_GTK)
-
-    add_executable(cpp main.cpp webview_gtk.cpp)
-    target_link_libraries(cpp webview)
-    target_compile_definitions(cpp PUBLIC -DPORT_GTK)
-
-    enable_testing()
-    add_test(cpp_test cpp)
 else ()
-    message(WARNING "PORT should be \"Cocoa\" or \"GTK\"")
+    message(WARNING "Unsupported Operating System")
 endif ()

@@ -10,7 +10,7 @@
 #include <string>
 
 /// Convenience type for Menubar handlers
-typedef void (*MenuBarHandler)();
+typedef std::function<void()> MenuBarHandler;
 
 /// MenuItem represents an item in a Menu
 struct MenuItem {
@@ -22,8 +22,8 @@ struct MenuItem {
     /// \param name label for MenuItem in the menubar
     /// \param key the key bind to trigger the action
     /// \param handler handler for menubar action
-    MenuItem(std::string name, const char *key, void (*handler)()) : name(std::move(name)), key(key),
-                                                                     handler(handler) {}
+    MenuItem(std::string name, const char *key, MenuBarHandler handler) : name(std::move(name)), key(key),
+                                                                          handler(std::move(handler)) {}
 };
 
 /// Menu represents a menu in the menubar

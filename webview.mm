@@ -1,6 +1,4 @@
 #import <objc/runtime.h>
-#include <string>
-#include <map>
 #include "webview.hpp"
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
@@ -43,27 +41,96 @@
 
 @end
 
-@interface Handler : NSObject <WKScriptMessageHandler>
-- (instancetype)initWithHandler:(HandlerFunc)aHandler window:(Window)aWindow;
-@end
+enum JSType {
+    Number,
+    String,
+    Date,
+    Array,
+    Dictionary,
+    Null
+};
 
-@implementation Handler {
-    Window window;
-    HandlerFunc handler;
+JSType getJSType(const std::string &name) {
+    if (name == "__NSCFNumber") {
+        return JSType::Number;
+    } else if (name == "NSTaggedPointerString" || name == "__NSCFConstantString") {
+        return JSType::String;
+    } else if (name == "__NSTaggedDate") {
+        return JSType::Date;
+    } else if (name == "__NSArrayI") {
+        return JSType::Array;
+    } else if (name == "__NSFrozenDictionaryM") {
+        return JSType::Dictionary;
+    }
+    return JSType::Null;
 }
 
-- (instancetype)initWithHandler:(HandlerFunc)aHandler window:(Window)aWindow {
+@interface ScriptHandler : NSObject <WKScriptMessageHandler>
+- (instancetype)initWithWindow:(Window)aWindow;
+
+- (void)addJSHandler:(std::string)name handler:(HandlerFunc)handler;
+
+@end
+
+std::vector <_JSPrimitiveResult> array_to_vector(id array) {
+    std::vector <_JSPrimitiveResult> array_vector;
+    array_vector.reserve([array count]);
+    for (id object in array) {
+        array_vector.emplace_back([object intValue]);
+    }
+    return array_vector;
+}
+
+std::map <std::string, _JSPrimitiveResult> dictionary_to_map(id) {
+    std::map <std::string, _JSPrimitiveResult> dictionary_map;
+    return dictionary_map;
+}
+
+@implementation ScriptHandler {
+    Window window;
+    std::map <std::string, HandlerFunc> handlers;
+}
+
+- (instancetype)initWithWindow:(Window)aWindow {
     self = [super init];
     if (self) {
-        handler = aHandler;
         window = aWindow;
     }
 
     return self;
 }
 
+- (void)addJSHandler:(std::string)name handler:(HandlerFunc)handler {
+    handlers[name] = handler;
+}
+
+
 - (void)userContentController:(WKUserContentController *)userContentController didReceiveScriptMessage:(WKScriptMessage *)message {
-    handler(window, HandlerInfo{[[message name] UTF8String], [(NSString * ) [message body] UTF8String]});
+//    handler(window, HandlerInfo{[[message name] UTF8String], [(NSString *) [message body] UTF8String]});
+    NSLog(@("%s"), "Received Message");
+    JSResult result;
+    switch (getJSType([[[message body] className] UTF8String])) {
+        case Number:
+            result = [[message body] intValue];
+            break;
+        case String:
+            result = [[message body] UTF8String];
+            break;
+        case Date:
+            result = [[NSDateFormatter localizedStringFromDate:[message body] dateStyle:NSDateFormatterShortStyle timeStyle:NSDateFormatterFullStyle] UTF8String];
+            break;
+        case Array:
+            result = array_to_vector([message body]);
+            break;
+        case Dictionary:
+            result = dictionary_to_map([message body]);
+            break;
+        case Null:
+            result = nullptr;
+            break;
+    }
+    std::string name = [[message name] UTF8String];
+    handlers[name](window, HandlerInfo{name, result});
 }
 
 @end
@@ -80,6 +147,8 @@ Window::Window(const char *title, int width, int height, WindowStyle style) {
 
     [[webView widthAnchor] constraintEqualToAnchor:[[window contentView] widthAnchor]].active = YES;
     [[webView heightAnchor] constraintEqualToAnchor:[[window contentView] heightAnchor]].active = YES;
+
+    handlerInstance = [[[ScriptHandler alloc] initWithWindow:*this] autorelease];
 }
 
 void Window::orderFront() {
@@ -117,8 +186,10 @@ void Window::eval(const char *javaScript) {
 }
 
 void Window::addHandler(const char *name, HandlerFunc handler) {
-    auto handle = [[[Handler alloc] initWithHandler:handler window:*this] autorelease];
-    [[[webView configuration] userContentController] addScriptMessageHandler:handle name:@(name)];
+//    auto handle = [[[Handler alloc] initWithHandler:handler window:*this] autorelease];
+
+    [handlerInstance addJSHandler:name handler:handler];
+    [[[webView configuration] userContentController] addScriptMessageHandler:(ScriptHandler *) handlerInstance name:@(name)];
 }
 
 void Window::hide() {
@@ -154,6 +225,8 @@ Application::Application() {
     [app setDelegate:appDelegate];
 }
 
+Application::~Application() = default;
+
 void Application::addDefaultMenus() {
     id appMenuItem = [[NSMenuItem new] autorelease];
     [menubar addItem:appMenuItem];
@@ -164,7 +237,7 @@ void Application::addDefaultMenus() {
     [appMenu addItem:NSMenuItem.separatorItem];
     id quitTitle = [@"Quit " stringByAppendingString:appName];
     id quitMenuItem = [[[NSMenuItem alloc] initWithTitle:quitTitle
-            action:@selector(terminate:) keyEquivalent:@"q"] autorelease];
+                                                  action:@selector(terminate:) keyEquivalent:@"q"] autorelease];
     [appMenu addItem:quitMenuItem];
     [appMenuItem setSubmenu:appMenu];
 
