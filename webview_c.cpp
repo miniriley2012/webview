@@ -106,6 +106,10 @@ void windowAddHandler(WebViewWindow window, const char *name, CHandlerFunc handl
     });
 }
 
+void windowSetCloseHandler(WebViewWindow window, CloseHandler handler) {
+    static_cast<Window *>(window)->setCloseHandler(handler);
+}
+
 void windowHide(WebViewWindow window) {
     static_cast<Window *>(window)->hide();
 }

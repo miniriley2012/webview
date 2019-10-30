@@ -35,6 +35,8 @@ enum CWindowStyle {
 /// Convenience typedef for a handler function
 typedef void (*CHandlerFunc)(WebViewWindow, struct CHandlerInfo);
 
+typedef bool (CloseHandler)(WebViewWindow);
+
 /// Creates a new WebViewMenuItem
 /// \param name label for MenuItem in the menubar
 /// \param key the key bind to trigger the action
@@ -130,15 +132,24 @@ void windowEval(WebViewWindow window, const char *javaScript);
 
 /// Adds a handler as a JS function to allow interaction with native code
 /// \code
-/// window.addHandler("thing", [](const char *message) {
-///     std::cout << "Received message: " << message << std::endl;
-/// });
+/// void handler(WebViewWindow window, struct CHandlerInfo info) {
+///   printf("Received message: %s", info.result);
+/// }
+/// // ...
+/// windowAddHandler(window, "thing", handler);
+///
 /// // Call in JS with: window.webkit.messageHandlers.thing.postMessage('Hello from JavaScript');
 /// \endcode
 /// \param window window
 /// \param name name of handler
 /// \param handler handler
 void windowAddHandler(WebViewWindow window, const char *name, CHandlerFunc handler);
+
+/// Sets handler to be run when the window is closed. The handler returns a boolean determining if the window should be
+/// closed.
+/// \param window window
+/// \param handler handler
+void windowSetCloseHandler(WebViewWindow window, CloseHandler handler);
 
 /// Hides the window
 /// \param window window

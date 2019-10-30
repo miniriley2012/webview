@@ -4,6 +4,8 @@ project(webview)
 set(CMAKE_CXX_STANDARD 17)
 
 if (${APPLE})
+    add_compile_definitions(OBJC_OLD_DISPATCH_PROTOTYPES)
+
     find_library(WEBKIT WebKit)
 
     add_library(webview webview.cpp)

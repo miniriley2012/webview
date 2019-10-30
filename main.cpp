@@ -49,12 +49,17 @@ int main() {
         window.show();
     });
 
-    html.addHandler("quit", [&](Window, const HandlerInfo &) {
+    html.addHandler("quit", [&](const Window &, const HandlerInfo &) {
         app.quit();
     });
 
     html.addHandler("close", [](Window window, const HandlerInfo &) {
         window.close();
+    });
+
+    html.setCloseHandler([](Window *window) {
+        std::cout << "Closed!" << std::endl;
+        return true;
     });
 
     html.show();

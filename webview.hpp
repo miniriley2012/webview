@@ -50,6 +50,9 @@ struct HandlerInfo {
 /// HandlerFunc for Window
 typedef std::function<void(Window, HandlerInfo)> HandlerFunc;
 
+/// CloseHandler for Window
+typedef std::function<bool(Window *)> WindowCloseHandler;
+
 /// Defines WindowStyles to be used for Window decorations
 enum class WindowStyle : unsigned int {
     Borderless = 0,
@@ -68,7 +71,7 @@ class Application {
     id appDelegate;
 
     /// Adds the default menubar menus on macOS
-    void addDefaultMenus();
+//    void addDefaultMenus();
 
 #endif
 
@@ -105,6 +108,8 @@ class Window {
     void orderFront();
 
 public:
+    WindowCloseHandler closeHandler;
+
     Window() = default;
 
     /// Creates a new Window
@@ -152,6 +157,19 @@ public:
     /// \param name name of handler
     /// \param handler handler
     void addHandler(const char *name, HandlerFunc handler);
+
+    /// Sets handler to be run when the window is closed. The handler returns a boolean determining if the window should be
+    /// closed.
+    /// \code
+    /// // hides the window instead of closing it
+    /// window.setCloseHandler([](w Window*) {
+    ///     w.hide();
+    ///     w.close();
+    /// }
+    /// \endcode
+    /// \param window window
+    /// \param handler handler
+    void setCloseHandler(const WindowCloseHandler &);
 
     /// Hides the window
     void hide();
