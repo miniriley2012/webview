@@ -25,7 +25,7 @@ int main() {
 <button onclick="window.webview.handlers.minimize.postMessage('');window.setTimeout(() => {window.webview.handlers.show.postMessage('')}, 3000);">Minimize</button>
 <button onclick="window.webview.handlers.hide.postMessage('');window.setTimeout(() => {window.webview.handlers.show.postMessage('')}, 3000);">Hide</button>
 <button onclick="window.webview.handlers.quit.postMessage('');">Quit</button>
-<button onclick="window.webview.handlers.close.postMessage(new Date());">Close</button>
+<button onclick="window.webview.handlers.close.postMessage('');">Close</button>
 )");
 
     html.addHandler("title", [](Window window, const HandlerInfo &info) {

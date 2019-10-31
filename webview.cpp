@@ -378,7 +378,7 @@ Application::Application() {
 
 Application::~Application() = default;
 
-void Application::addMenu(const Menu &menu) {
+void Application::addMenu(Menu &menu) {
     id menuItem = createMenu(menubar, asNSString(menu.name.c_str()));
     for (const auto &item : menu.items) {
         menuBarHandlers[item.name] = item.handler;

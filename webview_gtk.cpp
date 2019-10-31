@@ -5,6 +5,7 @@
 #include <string>
 #include <map>
 #include <algorithm>
+#include <utility>
 #include "webview.hpp"
 
 GtkApplication *Application::app = nullptr;
@@ -16,7 +17,7 @@ struct JSHandlerInfo {
     Window *window;
 };
 
-std::map <std::string, JSHandlerInfo> handlers;
+std::map<std::string, JSHandlerInfo> handlers;
 
 Application::Application() {
     gtk_init_check(nullptr, nullptr);
@@ -85,6 +86,12 @@ Window::Window(const char *title, int width, int height, WindowStyle style) {
                      (GCallback) + [](GtkApplication *app, gpointer user_data) {
                          gtk_application_add_window(app, (GtkWindow *) user_data);
                      }, window);
+    g_signal_connect(G_OBJECT(window), "delete-event",
+                     (GCallback) + [](GtkWidget *widget, GdkEvent *, gpointer user_data) {
+                         auto window = reinterpret_cast<Window *>(user_data);
+                         return window->closeHandler ? !window->closeHandler(window) : false;
+                     }, reinterpret_cast<gpointer>(this));
+    eval("window.webview = {handlers: window.webkit.messageHandlers}");
 }
 
 void Window::orderFront() {
@@ -120,7 +127,7 @@ void Window::eval(const char *javaScript) {
 
 void Window::addHandler(const char *name, HandlerFunc handler) {
     WebKitUserContentManager *manager = webkit_web_view_get_user_content_manager(webView);
-    handlers[name] = JSHandlerInfo{name, handler, this};
+    handlers[name] = JSHandlerInfo{name, std::move(handler), this};
     g_signal_connect(manager, (std::string("script-message-received::") + name).c_str(),
                      (GCallback) + [](WebKitUserContentManager *, WebKitJavascriptResult *result, gpointer user_data) {
                          auto handler = reinterpret_cast<JSHandlerInfo *>(user_data);
@@ -153,6 +160,14 @@ void Window::hide() {
 void Window::show() {
     gtk_window_deiconify(GTK_WINDOW(window));
     gtk_widget_show_all(window);
+}
+
+void Window::orderFront() {
+    gtk_widget_grab_focus(window);
+}
+
+void Window::setCloseHandler(const WindowCloseHandler &handler) {
+    closeHandler = handler;
 }
 
 void Window::minimize() {

@@ -3,6 +3,7 @@
 
 #include <variant>
 #include <map>
+#include <functional>
 
 #include "MenuBar.hpp"
 
@@ -31,7 +32,7 @@
 
 #define WindowType GtkWidget*
 #define WebViewType WebKitWebView*
-#define ApplicationType GtkApplication*
+#define ApplicationType static GtkApplication*
 #define MenuBarType static GMenu*
 #endif
 
@@ -85,7 +86,7 @@ public:
 
     /// adds a Menu to the application's menubar
     /// \param menu menu to add
-    void addMenu(const Menu &menu);
+    void addMenu(Menu &menu);
 
     /// Run application
     void run();
@@ -167,6 +168,7 @@ public:
     ///     w.close();
     /// }
     /// \endcode
+    /// \note The close handler is not run when Window::close is called in the Cocoa port.
     /// \param window window
     /// \param handler handler
     void setCloseHandler(const WindowCloseHandler &);
