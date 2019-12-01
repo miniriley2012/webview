@@ -8,6 +8,8 @@
 #include <CoreGraphics/CoreGraphics.h>
 
 Class handlerClass;
+Class UIDelegateClass;
+id UIDelegate;
 id windowDelegate;
 std::map<std::string, MenuBarHandler> menuBarHandlers;
 std::map<std::string, HandlerFunc> JSHandlers;
@@ -82,6 +84,8 @@ Window::Window(const char *title, int width, int height, WindowStyle style) {
 
     objc_msgSend(webView, "initWithFrame:configuration:"_sel, CGRectMake(0, 0, 0, 0), configuration);
     objc_msgSend(webView, "autorelease"_sel);
+
+    objc_msgSend(webView, "setUIDelegate:"_sel, UIDelegate);
 
     objc_setAssociatedObject(webView, "loadedHTML", (id) &loadedHTML, OBJC_ASSOCIATION_ASSIGN);
 
@@ -324,7 +328,7 @@ Application::Application() {
 
     Class windowDelegateClass = objc_allocateClassPair((Class) "NSObject"_cls, "WindowDelegate", 0);
 
-    class_addMethod(windowDelegateClass, "windowShouldClose:"_sel, (IMP) +[](id self, id, id sender) {
+    class_addMethod(windowDelegateClass, "windowShouldClose:"_sel, (IMP) +[](id self, SEL, id sender) {
         auto window = (Window *) objc_getAssociatedObject(sender, "window");
         return window->closeHandler ? window->closeHandler(window) : true;
     }, "c:@");
@@ -374,6 +378,24 @@ Application::Application() {
                                                                        "UTF8String"_sel);
                         JSHandlers[name](*window, HandlerInfo{name, result});
                     }, "v@:@@");
+
+    UIDelegateClass = objc_allocateClassPair((Class) "NSObject"_cls, "WebViewUIDelegate", 0);
+    class_addProtocol(UIDelegateClass, objc_getProtocol("WKUIDelegate"));
+
+    class_addMethod(UIDelegateClass,
+                    "webView:runJavaScriptAlertPanelWithMessage:initiatedByFrame:completionHandler:"_sel,
+                    (IMP) +[](id self, SEL, id, id message, id, void (^handler)(void)) {
+
+                        id alert = objc_msgSend(objc_msgSend(objc_msgSend("NSAlert"_cls, "alloc"_sel), "init"_sel),
+                                                "autorelease"_sel);
+                        objc_msgSend(alert, "setMessageText:"_sel, message);
+                        objc_msgSend(alert, "runModal"_sel);
+                        handler();
+                    }, "@:@:@:@:");
+
+    objc_registerClassPair(UIDelegateClass);
+
+    UIDelegate = objc_msgSend(objc_msgSend((id) UIDelegateClass, "new"_sel), "autorelease"_sel);
 }
 
 Application::~Application() = default;

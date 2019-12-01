@@ -26,10 +26,11 @@ int main() {
 <button onclick="window.webview.handlers.hide.postMessage('');window.setTimeout(() => {window.webview.handlers.show.postMessage('')}, 3000);">Hide</button>
 <button onclick="window.webview.handlers.quit.postMessage('');">Quit</button>
 <button onclick="window.webview.handlers.close.postMessage('');">Close</button>
+<button onclick="alert('hi!');">Hi!</button>
 )");
 
     html.addHandler("title", [](Window window, const HandlerInfo &info) {
-        auto title = std::get<std::string>(info.result);
+        const auto &title = std::get<std::string>(info.result);
         std::cout << "Setting title to: " << title << std::endl;
         window.setTitle(title.c_str());
     });
