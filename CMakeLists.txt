@@ -8,10 +8,10 @@ if (${APPLE})
 
     find_library(WEBKIT WebKit)
 
-    add_library(webview webview.cpp)
+    add_library(webview webview_cocoa.cpp)
     target_link_libraries(webview ${WEBKIT} ${APPKIT})
 
-    add_library(webview_c webview_c.cpp webview.cpp)
+    add_library(webview_c webview_c.cpp webview_cocoa.cpp)
     target_link_libraries(webview_c ${WEBKIT})
 
     add_executable(webview_test main.cpp)
