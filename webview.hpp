@@ -49,7 +49,7 @@ struct HandlerInfo {
 };
 
 /// HandlerFunc for Window
-typedef std::function<void(Window, HandlerInfo)> HandlerFunc;
+typedef std::function<void(Window *, HandlerInfo)> HandlerFunc;
 
 /// CloseHandler for Window
 typedef std::function<bool(Window *)> WindowCloseHandler;
@@ -66,7 +66,6 @@ enum class WindowStyle : unsigned int {
 
 /// Application type
 class Application {
-
 #ifdef __APPLE__
 
     id appDelegate;
@@ -84,7 +83,16 @@ public:
 
     ~Application();
 
-    /// adds a Menu to the application's menubar
+    /// Creates a Window and returns an std::unique_ptr to it.
+    /// \param title title of the window
+    /// \param width width of the window
+    /// \param height height of the window
+    /// \param style window functionality
+    /// \return a pointer to the window
+    std::unique_ptr<Window>
+    newWindow(const char *title, int width, int height, WindowStyle style = WindowStyle::Default);
+
+    /// Adds a Menu to the application's menubar
     /// \param menu menu to add
     void addMenu(Menu &menu);
 
@@ -97,9 +105,14 @@ public:
 
 /// Window type
 class Window {
+    friend class Application;
+
     WindowType window;
     WebViewType webView;
+
     std::string loadedHTML;
+
+    Application *app;
 
 #ifdef __APPLE__
     id handlerInstance;
@@ -108,17 +121,15 @@ class Window {
     /// Orders a window to the front of the screen and grabs focus
     void orderFront();
 
-public:
-    WindowCloseHandler closeHandler;
-
-    Window() = default;
-
     /// Creates a new Window
     /// \param title title of the window
     /// \param width width of the window
     /// \param height height of the window
     /// \param style window functionality
     Window(const char *title, int width, int height, WindowStyle style = WindowStyle::Default);
+
+public:
+    WindowCloseHandler closeHandler;
 
     /// Sets the title of the window
     /// \param title title

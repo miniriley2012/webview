@@ -189,7 +189,7 @@ void Window::minimize() {
 }
 
 void Window::close() {
-    objc_msgSend(window, "close"_sel);
+    objc_msgSend(window, "performClose:"_sel, nullptr);
 }
 
 JSType getJSType(const std::string &name) {
@@ -376,7 +376,7 @@ Application::Application() {
                         }
                         std::string name = (const char *) objc_msgSend(objc_msgSend(message, "name"_sel),
                                                                        "UTF8String"_sel);
-                        JSHandlers[name](*window, HandlerInfo{name, result});
+                        JSHandlers[name](window, HandlerInfo{name, result});
                     }, "v@:@@");
 
     UIDelegateClass = objc_allocateClassPair((Class) "NSObject"_cls, "WebViewUIDelegate", 0);
@@ -416,6 +416,8 @@ void Application::run() {
     objc_msgSend(app, "run"_sel);
 }
 
+// Note: this won't call window close handlers. A workaround is possible but I think a future notice in the
+// documentation is good enough for now.
 void Application::quit() {
     objc_msgSend(app, "terminate:"_sel, nullptr);
 }

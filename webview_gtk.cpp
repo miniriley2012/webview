@@ -175,5 +175,5 @@ void Window::minimize() {
 }
 
 void Window::close() {
-    gtk_close_window
+    gtk_close_window(GTK_WINDOW(window));
 }

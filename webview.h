@@ -75,6 +75,15 @@ void deleteApplication(WebViewApplication app);
 /// \param menu menu to add
 void applicationAddMenu(WebViewApplication app, WebViewMenu menu);
 
+/// Creates a new WebViewWindow
+/// \param title title of the window
+/// \param width width of the window
+/// \param height height of the window
+/// \param style window decorations
+/// \return WebViewWindow
+WebViewWindow
+applicationNewWindow(WebViewApplication app, const char *title, int width, int height, enum CWindowStyle style);
+
 /// Run application
 /// \param app application
 void applicationRun(WebViewApplication app);
@@ -82,14 +91,6 @@ void applicationRun(WebViewApplication app);
 /// Quit application
 /// \param app application
 void applicationQuit(WebViewApplication app);
-
-/// Creates a new WebViewWindow
-/// \param title title of the window
-/// \param width width of the window
-/// \param height height of the window
-/// \param style window decorations
-/// \return WebViewWindow
-WebViewWindow newWindow(const char *title, int width, int height, enum CWindowStyle style);
 
 /// Deletes window and calls destructors.
 /// \param window window

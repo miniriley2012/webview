@@ -1,4 +1,5 @@
 #include <iostream>
+
 #include "webview.hpp"
 
 int main() {
@@ -10,14 +11,14 @@ int main() {
     }});
     app.addMenu(menu);
 
-    Window window("Test", 400, 400);
-    window.loadURL("https://example.com");
+    auto window = app.newWindow("Test", 400, 400);
+    window->loadURL("https://example.com");
 
-    window.show();
+    window->show();
 
-    auto html = Window("HTML Test", 400, 400);
+    auto html = app.newWindow("HTML Test", 400, 400);
 
-    html.loadHTMLString(R"(
+    html->loadHTMLString(R"(
 <form onsubmit="event.preventDefault();window.webview.handlers.title.postMessage(this['t'].value);">
   <input type="text" name="t" placeholder="Set window title">
   <input type="submit">
@@ -29,42 +30,42 @@ int main() {
 <button onclick="alert('hi!');">Hi!</button>
 )");
 
-    html.addHandler("title", [](Window window, const HandlerInfo &info) {
+    html->addHandler("title", [](Window *window, const HandlerInfo &info) {
         const auto &title = std::get<std::string>(info.result);
         std::cout << "Setting title to: " << title << std::endl;
-        window.setTitle(title.c_str());
+        window->setTitle(title.c_str());
     });
 
-    html.addHandler("minimize", [](Window window, const HandlerInfo &) {
+    html->addHandler("minimize", [](Window *window, const HandlerInfo &) {
         std::cout << "Minimized" << std::endl;
-        window.minimize();
+        window->minimize();
     });
 
-    html.addHandler("hide", [](Window window, const HandlerInfo &) {
+    html->addHandler("hide", [](Window *window, const HandlerInfo &) {
         std::cout << "Hidden" << std::endl;
-        window.hide();
+        window->hide();
     });
 
-    html.addHandler("show", [](Window window, const HandlerInfo &) {
+    html->addHandler("show", [](Window *window, const HandlerInfo &) {
         std::cout << "Shown" << std::endl;
-        window.show();
+        window->show();
     });
 
-    html.addHandler("quit", [&](const Window &, const HandlerInfo &) {
+    html->addHandler("quit", [&](Window *, const HandlerInfo &) {
         app.quit();
     });
 
-    html.addHandler("close", [](Window window, const HandlerInfo &) {
-        window.close();
+    html->addHandler("close", [](Window *window, const HandlerInfo &) {
+        window->close();
     });
 
-    html.setCloseHandler([](Window *window) {
+    html->setCloseHandler([](Window *window) {
         std::cout << "Closed!" << std::endl;
         return true;
     });
 
-    html.show();
+    html->show();
 
-    html.eval("window.webview.messageHandlers.title.postMessage('My Window');");
+    html->eval("window.webview.messageHandlers.title.postMessage('My Window');");
     app.run();
 }

@@ -22,11 +22,12 @@ int main() {
     menuAddItem(menu, newMenuItem("Another Thing", "o", menuBarHandler));
     applicationAddMenu(app, menu);
 
-    WebViewWindow window = newWindow("Test", 400, 400, Default);
+    WebViewWindow window = applicationNewWindow(app, "Test", 400, 400, Default);
+    windowSetDeveloperToolsEnabled(window, true);
     windowLoadURL(window, "https://example.com");
     windowShow(window);
 
-    WebViewWindow html = newWindow("HTML Test", 400, 400, Default);
+    WebViewWindow html = applicationNewWindow(app, "HTML Test", 400, 400, Default);
     windowLoadHTMLString(html,
                          "<form onsubmit=\"event.preventDefault();window.webkit.messageHandlers.title.postMessage(this['t'].value);\">\n"
                          "  <input type=\"text\" name=\"t\" placeholder=\"Set window title\">\n"
