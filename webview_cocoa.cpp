@@ -207,8 +207,8 @@ JSType getJSType(const std::string &name) {
     return JSType::Null;
 }
 
-std::vector<_JSPrimitiveResult> array_to_vector(id array) {
-    std::vector<_JSPrimitiveResult> array_vector;
+std::vector<JSPrimitiveResult> array_to_vector(id array) {
+    std::vector<JSPrimitiveResult> array_vector;
     int array_size = (int) (uintptr_t) objc_msgSend(array, "count"_sel);
     array_vector.reserve(array_size);
     for (int i = 0; i < array_size; i++) {
@@ -219,8 +219,8 @@ std::vector<_JSPrimitiveResult> array_to_vector(id array) {
     return array_vector;
 }
 
-std::map<std::string, _JSPrimitiveResult> dictionary_to_map(id dict) {
-    std::map<std::string, _JSPrimitiveResult> dictionary_map;
+std::map<std::string, JSPrimitiveResult> dictionary_to_map(id dict) {
+    std::map<std::string, JSPrimitiveResult> dictionary_map;
     id keys = objc_msgSend(dict, "allKeys"_sel);
     int size = (int) (uintptr_t) objc_msgSend(keys, "count"_sel);
     for (int i = 0; i < size; i++) {

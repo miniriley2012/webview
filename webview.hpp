@@ -42,8 +42,8 @@
 // Predeclared Window class for HandlerFunc
 class Window;
 
-typedef std::variant<std::string, int, nullptr_t> _JSPrimitiveResult;
-typedef std::variant<std::string, int, std::vector<_JSPrimitiveResult>, std::map<std::string, _JSPrimitiveResult>, nullptr_t> JSResult;
+typedef std::variant<std::string, int, std::nullptr_t> JSPrimitiveResult;
+typedef std::variant<std::string, int, std::vector<JSPrimitiveResult>, std::map<std::string, JSPrimitiveResult>, std::nullptr_t> JSResult;
 
 /// Contains info about a handler
 struct HandlerInfo {
