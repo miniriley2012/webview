@@ -19,6 +19,8 @@
 
 #else
 
+#define OBJC_OLD_DISPATCH_PROTOTYPES 1
+
 #include <objc/objc-runtime.h>
 
 #define WindowType id
