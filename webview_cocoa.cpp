@@ -60,19 +60,19 @@ void addUserScript(id webView, const char *javaScript) {
 
 Window::Window(const char *title, int width, int height, WindowStyle style) {
     // Create NSWindow
-    window = objc_msgSend("NSWindow"_cls, "alloc"_sel);
-    objc_msgSend(window, "initWithContentRect:styleMask:backing:defer:"_sel, CGRectMake(0, 0, width, height),
+    nativeWindow = objc_msgSend("NSWindow"_cls, "alloc"_sel);
+    objc_msgSend(nativeWindow, "initWithContentRect:styleMask:backing:defer:"_sel, CGRectMake(0, 0, width, height),
                  style, 2, 0);
-    objc_msgSend(window, "autorelease"_sel);
+    objc_msgSend(nativeWindow, "autorelease"_sel);
 
-    objc_setAssociatedObject(window, "window", reinterpret_cast<id>(this), OBJC_ASSOCIATION_ASSIGN);
+    objc_setAssociatedObject(nativeWindow, "window", reinterpret_cast<id>(this), OBJC_ASSOCIATION_ASSIGN);
 
-    objc_msgSend(window, "setDelegate:"_sel, windowDelegate);
+    objc_msgSend(nativeWindow, "setDelegate:"_sel, windowDelegate);
 
     // Set Window title
-    objc_msgSend(window, "setTitle:"_sel, asNSString(title));
+    objc_msgSend(nativeWindow, "setTitle:"_sel, asNSString(title));
 
-    objc_msgSend(window, "cascadeTopLeftFromPoint:"_sel, CGPointMake(1, 0));
+    objc_msgSend(nativeWindow, "cascadeTopLeftFromPoint:"_sel, CGPointMake(1, 0));
 
     // Create WKWebViewConfiguration
     id configuration = objc_msgSend("WKWebViewConfiguration"_cls, "alloc"_sel);
@@ -92,16 +92,16 @@ Window::Window(const char *title, int width, int height, WindowStyle style) {
     objc_msgSend(webView, "setTranslatesAutoresizingMaskIntoConstraints:"_sel, 0);
 
     // Add web view to window
-    objc_msgSend(objc_msgSend(window, "contentView"_sel), "addSubview:"_sel, webView);
+    objc_msgSend(objc_msgSend(nativeWindow, "contentView"_sel), "addSubview:"_sel, webView);
 
     // Set width anchor of web view to be equal to window
     objc_msgSend(objc_msgSend(objc_msgSend(webView, "widthAnchor"_sel), "constraintEqualToAnchor:"_sel,
-                              objc_msgSend(objc_msgSend(window, "contentView"_sel), "widthAnchor"_sel)),
+                              objc_msgSend(objc_msgSend(nativeWindow, "contentView"_sel), "widthAnchor"_sel)),
                  "setActive:"_sel, 1);
 
     // Set height anchor of web view to be equal to window
     objc_msgSend(objc_msgSend(objc_msgSend(webView, "heightAnchor"_sel), "constraintEqualToAnchor:"_sel,
-                              objc_msgSend(objc_msgSend(window, "contentView"_sel), "heightAnchor"_sel)),
+                              objc_msgSend(objc_msgSend(nativeWindow, "contentView"_sel), "heightAnchor"_sel)),
                  "setActive:"_sel, 1);
 
     handlerInstance = objc_msgSend((id) handlerClass, "alloc"_sel);
@@ -112,18 +112,18 @@ Window::Window(const char *title, int width, int height, WindowStyle style) {
 }
 
 void Window::orderFront() {
-    objc_msgSend(window, "makeKeyAndOrderFront:"_sel, nullptr);
+    objc_msgSend(nativeWindow, "makeKeyAndOrderFront:"_sel, nullptr);
 }
 
 void Window::setTitle(const char *title) {
-    objc_msgSend(window, "setTitle:"_sel, asNSString(title));
+    objc_msgSend(nativeWindow, "setTitle:"_sel, asNSString(title));
 }
 
 void Window::setSize(int width, int height) {
-    auto frame = (CGRect *) objc_msgSend(window, "valueForKey:"_sel, "frame"_str);
+    auto frame = (CGRect *) objc_msgSend(nativeWindow, "valueForKey:"_sel, "frame"_str);
     frame->size.width = width;
     frame->size.height = height;
-    objc_msgSend(window, "setFrame:display:"_sel, *frame, true);
+    objc_msgSend(nativeWindow, "setFrame:display:"_sel, *frame, true);
 }
 
 void Window::setDeveloperToolsEnabled(bool enabled) {
@@ -174,22 +174,22 @@ void Window::setCloseHandler(const WindowCloseHandler &handler) {
 }
 
 void Window::hide() {
-    objc_msgSend(window, "orderOut:"_sel, nullptr);
+    objc_msgSend(nativeWindow, "orderOut:"_sel, nullptr);
 }
 
 void Window::show() {
-    if (objc_msgSend(window, "isMiniaturized"_sel)) {
-        objc_msgSend(window, "deminiaturize:"_sel, nullptr);
+    if (objc_msgSend(nativeWindow, "isMiniaturized"_sel)) {
+        objc_msgSend(nativeWindow, "deminiaturize:"_sel, nullptr);
     }
     orderFront();
 }
 
 void Window::minimize() {
-    objc_msgSend(window, "miniaturize:"_sel, nullptr);
+    objc_msgSend(nativeWindow, "miniaturize:"_sel, nullptr);
 }
 
 void Window::close() {
-    objc_msgSend(window, "performClose:"_sel, nullptr);
+    objc_msgSend(nativeWindow, "performClose:"_sel, nullptr);
 }
 
 JSType getJSType(const std::string &name) {
@@ -280,14 +280,14 @@ void addDefaultMenus(id menubar) {
 Application::Application() {
     // Create Autorelease pool
     objc_msgSend("NSAutoreleasePool"_cls, "new"_sel);
-    app = objc_msgSend("NSApplication"_cls, "sharedApplication"_sel);
+    nativeApp = objc_msgSend("NSApplication"_cls, "sharedApplication"_sel);
 
     // Create Menu
-    menubar = objc_msgSend("NSMenu"_cls, "new"_sel);
-    objc_msgSend(menubar, "autorelease"_sel);
-    objc_msgSend(app, "setMainMenu:"_sel, menubar);
+    nativeMenubar = objc_msgSend("NSMenu"_cls, "new"_sel);
+    objc_msgSend(nativeMenubar, "autorelease"_sel);
+    objc_msgSend(nativeApp, "setMainMenu:"_sel, nativeMenubar);
 
-    addDefaultMenus(menubar);
+    addDefaultMenus(nativeMenubar);
 
     // Create AppDelegate
     Class appDelegateClass = objc_allocateClassPair((Class) "NSObject"_cls, "AppDelegate", 0);
@@ -324,7 +324,7 @@ Application::Application() {
     appDelegate = objc_msgSend("AppDelegate"_cls, "new"_sel);
     objc_msgSend(appDelegate, "autorelease"_sel);
 
-    objc_msgSend(app, "setDelegate:"_sel, appDelegate);
+    objc_msgSend(nativeApp, "setDelegate:"_sel, appDelegate);
 
     Class windowDelegateClass = objc_allocateClassPair((Class) "NSObject"_cls, "WindowDelegate", 0);
 
@@ -401,7 +401,7 @@ Application::Application() {
 Application::~Application() = default;
 
 void Application::addMenu(Menu &menu) {
-    id menuItem = createMenu(menubar, asNSString(menu.name.c_str()));
+    id menuItem = createMenu(nativeMenubar, asNSString(menu.name.c_str()));
     for (const auto &item : menu.items) {
         menuBarHandlers[item.name] = item.handler;
         class_addMethod(object_getClass(appDelegate), sel_registerName(item.name.c_str()), (IMP) +[](id self, SEL cmd) {
@@ -413,11 +413,11 @@ void Application::addMenu(Menu &menu) {
 }
 
 void Application::run() {
-    objc_msgSend(app, "run"_sel);
+    objc_msgSend(nativeApp, "run"_sel);
 }
 
 // Note: this won't call window close handlers. A workaround is possible but I think a future notice in the
 // documentation is good enough for now.
 void Application::quit() {
-    objc_msgSend(app, "terminate:"_sel, nullptr);
+    objc_msgSend(nativeApp, "terminate:"_sel, nullptr);
 }

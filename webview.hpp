@@ -73,14 +73,11 @@ class Application {
 
     id appDelegate;
 
-    /// Adds the default menubar menus on macOS
-//    void addDefaultMenus();
-
 #endif
-
-    ApplicationType app;
-    MenuBarType menubar;
 public:
+    ApplicationType nativeApp;
+    MenuBarType nativeMenubar;
+
     /// Creates a new Application
     Application();
 
@@ -110,7 +107,6 @@ public:
 class Window {
     friend class Application;
 
-    WindowType window;
     WebViewType webView;
 
     std::string loadedHTML;
@@ -132,6 +128,8 @@ class Window {
     Window(const char *title, int width, int height, WindowStyle style = WindowStyle::Default);
 
 public:
+    WindowType nativeWindow;
+
     WindowCloseHandler closeHandler;
 
     /// Sets the title of the window
