@@ -8,9 +8,6 @@
 #include <utility>
 #include "webview.hpp"
 
-GtkApplication *Application::nativeApp = nullptr;
-GMenu *Application::menubar = nullptr;
-
 struct JSHandlerInfo {
     const char *name;
     HandlerFunc handler;
@@ -21,7 +18,7 @@ std::map<std::string, JSHandlerInfo> handlers;
 
 Application::Application() {
     gtk_init_check(nullptr, nullptr);
-    if (!nativeApp) nativeApp = gtk_application_new(nullptr, G_APPLICATION_FLAGS_NONE);
+    nativeApp = gtk_application_new(nullptr, G_APPLICATION_FLAGS_NONE);
     GActionEntry actions[] = {"quit",
                               +[](GSimpleAction *, GVariant *, void *app) { g_application_quit(G_APPLICATION(app)); },
                               nullptr, nullptr,
@@ -30,7 +27,7 @@ Application::Application() {
 
     g_application_register(G_APPLICATION(nativeApp), nullptr, nullptr);
 
-    if (!menubar) menubar = g_menu_new();
+    menubar = g_menu_new();
     gtk_application_set_menubar(nativeApp, G_MENU_MODEL(menubar));
 }
 

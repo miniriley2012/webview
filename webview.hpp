@@ -35,8 +35,8 @@
 
 #define WindowType GtkWidget*
 #define WebViewType WebKitWebView*
-#define ApplicationType static GtkApplication*
-#define MenuBarType static GMenu*
+#define ApplicationType GtkApplication*
+#define MenuBarType GMenu*
 #endif
 
 // Predeclared Window class for HandlerFunc
