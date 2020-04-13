@@ -8,7 +8,7 @@
 #include <utility>
 #include "webview.hpp"
 
-GtkApplication *Application::app = nullptr;
+GtkApplication *Application::nativeApp = nullptr;
 GMenu *Application::menubar = nullptr;
 
 struct JSHandlerInfo {
@@ -21,21 +21,21 @@ std::map<std::string, JSHandlerInfo> handlers;
 
 Application::Application() {
     gtk_init_check(nullptr, nullptr);
-    if (!app) app = gtk_application_new(nullptr, G_APPLICATION_FLAGS_NONE);
+    if (!nativeApp) nativeApp = gtk_application_new(nullptr, G_APPLICATION_FLAGS_NONE);
     GActionEntry actions[] = {"quit",
                               +[](GSimpleAction *, GVariant *, void *app) { g_application_quit(G_APPLICATION(app)); },
                               nullptr, nullptr,
                               nullptr};
-    g_action_map_add_action_entries(G_ACTION_MAP(app), actions, 1, app);
+    g_action_map_add_action_entries(G_ACTION_MAP(nativeApp), actions, 1, nativeApp);
 
-    g_application_register(G_APPLICATION(app), nullptr, nullptr);
+    g_application_register(G_APPLICATION(nativeApp), nullptr, nullptr);
 
     if (!menubar) menubar = g_menu_new();
-    gtk_application_set_menubar(app, G_MENU_MODEL(menubar));
+    gtk_application_set_menubar(nativeApp, G_MENU_MODEL(menubar));
 }
 
 Application::~Application() {
-    g_object_unref(app);
+    g_object_unref(nativeApp);
     g_object_unref(menubar);
 }
 
@@ -49,7 +49,7 @@ void Application::addMenu(Menu &menu) {
         g_signal_connect(action, "activate", G_CALLBACK(+[](GSimpleAction *, GVariant *, void *handler) {
             (*reinterpret_cast<MenuBarHandler *>(handler))();
         }), reinterpret_cast<gpointer>(&item.handler));
-        g_action_map_add_action(G_ACTION_MAP(app), G_ACTION(action));
+        g_action_map_add_action(G_ACTION_MAP(nativeApp), G_ACTION(action));
         g_menu_append(section, item.name.c_str(),
                       g_action_print_detailed_name((std::string("app.") + action_name).c_str(), nullptr));
     }
@@ -60,33 +60,34 @@ void Application::addMenu(Menu &menu) {
 }
 
 void Application::run() {
-    g_application_run(G_APPLICATION(app), 0, nullptr);
+    g_application_run(G_APPLICATION(nativeApp), 0, nullptr);
 }
 
 void Application::quit() {
-    g_application_quit(G_APPLICATION(app));
+    g_application_quit(G_APPLICATION(nativeApp));
 }
 
 Window::Window(const char *title, int width, int height, WindowStyle style) {
-    window = gtk_application_window_new(GTK_APPLICATION(g_application_get_default()));
+    nativeWindow = gtk_application_window_new(GTK_APPLICATION(g_application_get_default()));
 
-    gtk_window_set_title(GTK_WINDOW(window), title);
-    gtk_window_set_default_size(GTK_WINDOW(window), width, height);
-    gtk_window_set_resizable(GTK_WINDOW(window), (unsigned int) style & (unsigned int) WindowStyle::Resizable);
-    gtk_window_set_decorated(GTK_WINDOW(window), !((unsigned int) style & (unsigned int) WindowStyle::Borderless));
-    gtk_window_set_deletable(GTK_WINDOW(window), (unsigned int) style & (unsigned int) WindowStyle::Closable);
+    gtk_window_set_title(GTK_WINDOW(nativeWindow), title);
+    gtk_window_set_default_size(GTK_WINDOW(nativeWindow), width, height);
+    gtk_window_set_resizable(GTK_WINDOW(nativeWindow), (unsigned int) style & (unsigned int) WindowStyle::Resizable);
+    gtk_window_set_decorated(GTK_WINDOW(nativeWindow),
+                             !((unsigned int) style & (unsigned int) WindowStyle::Borderless));
+    gtk_window_set_deletable(GTK_WINDOW(nativeWindow), (unsigned int) style & (unsigned int) WindowStyle::Closable);
 
     webView = WEBKIT_WEB_VIEW(webkit_web_view_new());
 
-    gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(webView));
+    gtk_container_add(GTK_CONTAINER(nativeWindow), GTK_WIDGET(webView));
 
-    gtk_application_window_set_show_menubar(GTK_APPLICATION_WINDOW(window), true);
+    gtk_application_window_set_show_menubar(GTK_APPLICATION_WINDOW(nativeWindow), true);
 
     g_signal_connect(g_application_get_default(), "activate",
                      (GCallback) + [](GtkApplication *app, gpointer user_data) {
                          gtk_application_add_window(app, (GtkWindow *) user_data);
-                     }, window);
-    g_signal_connect(G_OBJECT(window), "delete-event",
+                     }, nativeWindow);
+    g_signal_connect(G_OBJECT(nativeWindow), "delete-event",
                      (GCallback) + [](GtkWidget *widget, GdkEvent *, gpointer user_data) {
                          auto window = reinterpret_cast<Window *>(user_data);
                          return window->closeHandler ? !window->closeHandler(window) : false;
@@ -95,15 +96,15 @@ Window::Window(const char *title, int width, int height, WindowStyle style) {
 }
 
 void Window::orderFront() {
-    gtk_widget_grab_focus(window);
+    gtk_widget_grab_focus(nativeWindow);
 }
 
 void Window::setTitle(const char *title) {
-    gtk_window_set_title(GTK_WINDOW(window), title);
+    gtk_window_set_title(GTK_WINDOW(nativeWindow), title);
 }
 
 void Window::setSize(int width, int height) {
-    gtk_window_set_default_size(GTK_WINDOW(window), width, height);
+    gtk_window_set_default_size(GTK_WINDOW(nativeWindow), width, height);
 }
 
 void Window::loadHTMLString(const char *html) {
@@ -154,12 +155,12 @@ void Window::addHandler(const char *name, HandlerFunc handler) {
 }
 
 void Window::hide() {
-    gtk_widget_hide(window);
+    gtk_widget_hide(nativeWindow);
 }
 
 void Window::show() {
-    gtk_window_deiconify(GTK_WINDOW(window));
-    gtk_widget_show_all(window);
+    gtk_window_deiconify(GTK_WINDOW(nativeWindow));
+    gtk_widget_show_all(nativeWindow);
 }
 
 void Window::setCloseHandler(const WindowCloseHandler &handler) {
@@ -167,9 +168,9 @@ void Window::setCloseHandler(const WindowCloseHandler &handler) {
 }
 
 void Window::minimize() {
-    gtk_window_iconify(GTK_WINDOW(window));
+    gtk_window_iconify(GTK_WINDOW(nativeWindow));
 }
 
 void Window::close() {
-    gtk_window_close(GTK_WINDOW(window));
+    gtk_window_close(GTK_WINDOW(nativeWindow));
 }
