@@ -40,16 +40,19 @@ void applicationAddMenu(WebViewApplication app, WebViewMenu menu) {
     static_cast<Application *>(app)->addMenu(*static_cast<Menu *>(menu));
 }
 
+WebViewWindow
+applicationNewWindow(WebViewApplication app, const char *title, int width, int height, enum CWindowStyle style) {
+    auto window = static_cast<Application *>(app)->newWindow(title, width, height, (WindowStyle) style);
+    auto ptr = window.release();
+    return static_cast<WebViewWindow>(ptr);
+}
+
 void applicationRun(WebViewApplication app) {
     static_cast<Application *>(app)->run();
 }
 
 void applicationQuit(WebViewApplication app) {
     static_cast<Application *>(app)->quit();
-}
-
-WebViewWindow newWindow(const char *title, int width, int height, enum CWindowStyle style) {
-    return static_cast<WebViewWindow>(new Window(title, width, height, (WindowStyle) style));
 }
 
 void deleteWindow(WebViewWindow window) {
@@ -95,14 +98,14 @@ namespace {
 }
 
 void windowAddHandler(WebViewWindow window, const char *name, CHandlerFunc handler) {
-    static_cast<Window *>(window)->addHandler(name, [=](Window window, const HandlerInfo &info) {
+    static_cast<Window *>(window)->addHandler(name, [=](Window *window, const HandlerInfo &info) {
         void *result;
         std::visit(overload{
                 [&](const std::string &str) { result = (void *) str.c_str(); },
                 [&](int i) { result = (void *) &i; },
                 [&](auto a) { result = nullptr; }
         }, info.result);
-        handler(static_cast<WebViewWindow>(&window), CHandlerInfo{info.name.c_str(), result});
+        handler(static_cast<WebViewWindow>(window), CHandlerInfo{info.name.c_str(), result});
     });
 }
 

@@ -8,10 +8,10 @@ if (${APPLE})
 
     find_library(WEBKIT WebKit)
 
-    add_library(webview webview_cocoa.cpp)
+    add_library(webview webview_cocoa.cpp webview.cpp)
     target_link_libraries(webview ${WEBKIT} ${APPKIT})
 
-    add_library(webview_c webview_c.cpp webview_cocoa.cpp)
+    add_library(webview_c webview_c.cpp webview_cocoa.cpp webview.cpp)
     target_link_libraries(webview_c ${WEBKIT})
 
     add_executable(webview_test main.cpp)
@@ -19,8 +19,8 @@ if (${APPLE})
 
     add_executable(webview_c_test main.c)
     target_link_libraries(webview_c_test webview_c)
-elseif (${PORT} MATCHES "GTK")
-    add_library(webview webview_gtk.cpp)
+elseif (${UNIX})
+    add_library(webview webview_gtk.cpp webview.cpp)
     if (${APPLE}) # Homebrew stuff
         set(ENV{PKG_CONFIG_PATH} "/usr/local/opt/libffi/lib/pkgconfig")
         target_include_directories(webview PUBLIC /usr/local/opt/gettext/include)
