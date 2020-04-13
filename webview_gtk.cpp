@@ -139,14 +139,14 @@ void Window::addHandler(const char *name, HandlerFunc handler) {
                              str_value = jsc_value_to_string(value);
                              exception = jsc_context_get_exception(jsc_value_get_context(value));
                              if (exception) {
-                                 handler->handler(*handler->window,
+                                 handler->handler(handler->window,
                                                   HandlerInfo{handler->name, jsc_exception_get_message(exception)});
                              } else {
-                                 handler->handler(*handler->window, HandlerInfo{handler->name, str_value});
+                                 handler->handler(handler->window, HandlerInfo{handler->name, str_value});
                              }
                              g_free(str_value);
                          } else {
-                             handler->handler(*handler->window, HandlerInfo{handler->name, "Value is not a string"});
+                             handler->handler(handler->window, HandlerInfo{handler->name, "Value is not a string"});
                          }
                          webkit_javascript_result_unref(result);
                      }, &handlers[name]);
@@ -162,10 +162,6 @@ void Window::show() {
     gtk_widget_show_all(window);
 }
 
-void Window::orderFront() {
-    gtk_widget_grab_focus(window);
-}
-
 void Window::setCloseHandler(const WindowCloseHandler &handler) {
     closeHandler = handler;
 }
@@ -175,5 +171,5 @@ void Window::minimize() {
 }
 
 void Window::close() {
-    gtk_close_window(GTK_WINDOW(window));
+    gtk_window_close(GTK_WINDOW(window));
 }

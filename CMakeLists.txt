@@ -19,7 +19,7 @@ if (${APPLE})
 
     add_executable(webview_c_test main.c)
     target_link_libraries(webview_c_test webview_c)
-elseif (${UNIX} OR ${PORT} MATCHES "GTK")
+elseif (${UNIX})
     add_library(webview webview_gtk.cpp webview.cpp)
     if (${APPLE}) # Homebrew stuff
         set(ENV{PKG_CONFIG_PATH} "/usr/local/opt/libffi/lib/pkgconfig")

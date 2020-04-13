@@ -4,6 +4,7 @@
 #include <variant>
 #include <map>
 #include <functional>
+#include <memory>
 
 #include "MenuBar.hpp"
 
